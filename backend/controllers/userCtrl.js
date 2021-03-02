@@ -79,3 +79,19 @@ exports.login = async (req, res) => {
   
 
 };
+exports.getUser = async (req, res) => {
+  try {
+    const user = await models.User.findOne({
+      where: { id: req.params.id}
+    });
+    res.status(200).send(user);
+  } catch (error){
+    return res.status(500).send({ error : "Erreur serveur"})
+  }
+};
+exports.updateUser = async (req, res) => {
+  
+};
+exports.deleteUser = async (req, res) => {
+  
+};
