@@ -44,7 +44,7 @@ exports.signup = async (req, res) => {
   });
 
 };
-exports.signup = async (req, res) => {
+exports.login = async (req, res) => {
   //params
   let email = req.body.email;
   let pseudo = req.body.pseudo;
