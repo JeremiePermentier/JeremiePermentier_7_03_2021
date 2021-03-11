@@ -1,9 +1,10 @@
 const bcrypt = require('bcrypt');
-let jwtUtils = require('../utils/jwt.utils')
+const jwt = require('jsonwebtoken');
+const token = require("../middleware/token");
 const models = require('../models');
 
 
-exports.signup = async (req, res) => {
+exports.signup = (req, res, next) => {
   //params
   let email = req.body.email;
   let pseudo = req.body.pseudo;
@@ -28,7 +29,7 @@ exports.signup = async (req, res) => {
         })
         .then(function(newUser){
           return res.status(201).json({
-            'userId': newUser.id
+            'userId': newUser.id,
           })
         })
         .catch(function(err){
@@ -36,7 +37,7 @@ exports.signup = async (req, res) => {
         })
       });
     } else {
-      return res.status(409).json({ 'error': 'user already exist'});
+      return res.status(409).json({ 'error': 'Pseudo déjà utilisé'});
     }
   })
   .catch(function(err){
@@ -44,54 +45,79 @@ exports.signup = async (req, res) => {
   });
 
 };
-exports.login = async (req, res) => {
-  //params
-  let email = req.body.email;
-  let pseudo = req.body.pseudo;
-  let password = req.body.password;
-
-  if (email == null || password == null){
-    return res.status(400).json({ 'error': 'missing parameters'})
-  }
-
+exports.login = (req, res, next) => {
   models.User.findOne({
-    where: { email: email}
+    where: { email: req.body.email}
   })
-  .then(function(userFound){
-    if (userFound){
-      bcrypt.compare(password, userFound.password, function(errBycrypt, resBycrypt){
-        if(resBycrypt){
-          return res.status(200).json({
-            'userId': userFound.id,
-            'token': jwtUtils.generateTokenForUser(userFound)
+  .then(user => {
+      if (!user) {
+          return res.status(401).json({ error: 'Utilisateur non trouvé !'});
+      }
+      bcrypt.compare(req.body.password, user.password)
+      .then(valid => {
+          if (!valid){
+              return res.status(401).json({ error: 'Mot de passe incorrect !'});
+          }
+          res.status(200).json({
+              userId: user.id,
+              token: jwt.sign(
+                  {userId: user.id },
+                  'RANDOM_TOKEN_SECRET',
+                  { expiresIn: '24h' }
+              )
           });
-        } else {
-          return res.status(403).json({ "error": "invalid password"})
-        }
       })
+      .catch(error => res.status(500).json({ error}));
+  })
+  .catch(error => res.status(500).json({ error}));
+};
+
+exports.getUser = (req, res, next) => {
+  models.User.findOne({
+    where: { id : req.params.id }
+    .then(user => {
+      if (!user){
+        return res.status(401).json({ error: 'Utilisateur non trouvé !'})
+      } else {
+        res.status(200).send(user);
+      }
+    })
+    .catch(error => {
+      return res.status(500).send({ error: "Erreur du serveur"})
+    })
+  })
+};
+exports.updateUser = (req, res, next) => {
+  // models.User.findOne({
+  //   where: { id : req.params.id }
+  //   .then(user => {
+  //     if (user.id === req.params.id){
+  //       const userObject = req.file ?
+  //       {
+  //         ...json.parse(req.body),
+  //         avatar: `${req.protocol}://${req.get('host')}/img/${req.file.filename}`,
+  //       } : {...req.body}
+  //     }
+  //   })
+  // })
+};
+exports.deleteUser = (req, res) => {
+  models.User.findOne({
+    where: { id: req.params.id}
+  })
+  .then(user => {
+    if(user.avatar !== null){
+      const filename = user.avatar.split('/img/')[1];
+      fs.unlink(`img/${filename}`, () => {
+      models.User.destroy({ where: { id: req.params.id } });
+      res.status(200).json({ msg: "Utilisateur supprimé" });
+      });
     } else {
-      return res.status(404).json({ 'error': 'user not exist in db'});
+      models.User.destroy({ where: { id: req.params.id } });
+      res.status(200).json({ msg: "Utilisateur supprimé" });
     }
   })
-  .catch(function(err){
-    return res.status(500).json({ 'error': 'unable to verify user'});
+  .catch(error => {
+    return res.status(500).send({ error: "Erreur serveur"});
   })
-  
-
-};
-exports.getUser = async (req, res) => {
-  try {
-    const user = await models.User.findOne({
-      where: { id: req.params.id}
-    });
-    res.status(200).send(user);
-  } catch (error){
-    return res.status(500).send({ error : "Erreur serveur"})
-  }
-};
-exports.updateUser = async (req, res) => {
-  
-};
-exports.deleteUser = async (req, res) => {
-  
 };

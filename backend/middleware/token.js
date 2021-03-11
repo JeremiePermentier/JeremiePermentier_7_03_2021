@@ -9,18 +9,17 @@ function issueJWT(user) {
     sub: id,
     iat: Date.now(),
   };
-  const signedToken = JWT.sign(payload, "secret", { expiresIn: expiresIn });
+  const signedToken = JWT.sign(payload, "RANDOM_TOKEN_SECRET", { expiresIn: expiresIn });
   return {
-    token: "Bearer " + signedToken,
+    token: signedToken,
     expires: expiresIn,
   };
 }
 function getUserId(req) {
-  // on vérifie le userId du token
-  const token = req.headers.authorization.split(" ")[1]; // on récupère le token de la requête entrante
-  const decodedToken = JWT.verify(token, "secret"); // on le vérifie
+  const token = req.headers.authorization.split(" ")[1];
+  const decodedToken = JWT.verify(token, "RANDOM_TOKEN_SECRET");
   const userId = decodedToken.sub;
-  return userId; // on récupère l'id du token
+  return userId;
 }
 
 module.exports.issueJWT = issueJWT;
