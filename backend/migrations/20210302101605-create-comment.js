@@ -12,15 +12,19 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER,
         references: {
-          model: 'Message',
+          model: 'Messages',
           key: 'id'
         }
+      },
+      pseudo: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       userId: {
         allowNull: false,
         type: Sequelize.INTEGER,
         references: {
-          model: 'User',
+          model: 'Users',
           key: 'id'
         }
       },

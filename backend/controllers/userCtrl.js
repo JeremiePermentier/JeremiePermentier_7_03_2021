@@ -100,6 +100,14 @@ exports.updateUser = (req, res, next) => {
   //     }
   //   })
   // })
+  const userObject = req.file ?
+  {
+    ...JSON.parse(req.body.user),
+    imageUrl: `${req.protocol}://${req.get('host')}/img/${req.file.filename}`,
+  } : {...req.body};
+  models.User.save({id:req.params.id}, {...userObject, id: req.params.id})
+  .then(() => res.status(200).json({ message : 'Objet modifié !'}))
+  .catch(error => res.status(400).json({ error }));
 };
 exports.deleteUser = (req, res) => {
   models.User.findOne({
