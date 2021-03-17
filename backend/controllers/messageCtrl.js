@@ -1,5 +1,6 @@
 const models = require("../models");
 const fs = require("fs");
+const jwt = require('jsonwebtoken');
 
 exports.getAllMessages = (req, res, next) => {
     models.Message.findAll({
@@ -62,6 +63,11 @@ exports.getMessage = (req, res, next) => {
 };
 
 exports.createMessage = (req, res, next) => {
+    // Récupération userId
+    // const token = req.headers.authorization.split(' ')[1];
+    // const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    // const userId = decodedToken.userId;
+
     //params
     const message = req.body.message;
     const userId = req.body.userId;
@@ -80,62 +86,9 @@ exports.createMessage = (req, res, next) => {
     .catch((error) => res.status(400).send(error))
 };
 
-exports.likeMessage = (req, res, next) => {
-    const userId = req.body.userId;
-    const messageId = req.params.id;
-    models.Like.findOne({
-        where: { userId: req.body.userId, messageId: req.params.id}
-    })
-    .then(user => {
-        if (user){
-            models.Like.destroy(
-                { where: { UserId: req.body.userId, MessageId: req.params.id}},
-            );
-            res.status(200).send({ msg: "Vous n'aimez plus ce message"})
-        } else {
-            models.Like.create({
-                UserId: req.body.userId,
-                MessageId: req.params.id,
-            });
-            res.status(201).json({ msg: "Vous aimez ce message" });
-        }
-    })
-    .catch((error) => {
-        return res.status(400).send(error);
-    })
-};
-
-exports.addComment = (req, res, next) => {
-    const comment = req.body.comment;
-    const pseudo = req.body.pseudo;
-    const userId = req.body.userId;
-    const messageId = req.params.id;
-
-    
-    models.Comment.create({
-        comment: comment,
-        pseudo: pseudo,
-        UserId: userId,
-        MessageId: messageId
-    })
-    .then(() => res.status(201).send({msg: "Votre commentaire à été posté"}))
-    .catch((error) => res.status(500).send(error))
-};
 
 exports.updateMessage = (req, res, next) => {
-    
-};
-
-exports.updateComment = (req, res, next) => {
-    
-};
-
-exports.deleteComment = (req, res, next) => {
-    models.Comment.destroy({
-        where: {id: req.params.id }
-    })
-    .then(() => res.status(200).send({msg: "Votre commentaire à bien été supprimé"}))
-    .catch((error) => res.status(400).send({error}) )
+ 
 };
 
 exports.deleteMessage = (req, res, next) => {
