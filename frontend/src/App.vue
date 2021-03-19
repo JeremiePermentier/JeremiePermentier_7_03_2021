@@ -1,67 +1,95 @@
 <template>
   <div id="app">
-    <Banner></Banner>
-    <div id="nav">
-      <router-link to="/">Accueil</router-link> |
-      <router-link to="/signup">s'enregistrer</router-link> |
-      <router-link to="/login">connexion</router-link> |
-      <router-link to="/user">Compte</router-link>
+    <div class="banner">
+    <img class="banner__img" alt="logo groupomania" src="../src/assets/img/icon-left-font-monochrome-white.png">
+    <div id="nav" class="nav">
+      <router-link class="nav__link" v-if="hideNav()" to="/"><i class="fas fa-home"></i> </router-link>
+      <router-link class="nav__link" v-if="!hideNav()" to="/signup">Inscription</router-link>
+      <router-link class="nav__link" v-if="!hideNav()" to="/login">connexion </router-link>
+      <router-link class="nav__link" v-if="hideNav()" to="/user"><i class="fas fa-user"></i></router-link>
     </div>
-    <router-view/>
+    </div>
+  <router-view/>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import Banner from '@/components/Banner.vue'
 
 
 export default {
-  components: {
-    Banner
+  methods: {
+    hideNav(){
+      if(this.$store.state.status == "success"){
+        return true
+      } else {
+        return false
+      }
+    }
   }
 }
 </script>
 
 <style lang="scss">
+
+// Variables 
+@import "./assets/utils/_variables.scss";
+
 body{
+  height: 100%;
   margin: 0;
-  text-align: center;
+  padding: 0;
 }
 
 #app {
     font-family: Avenir, Helvetica, Arial, sans-serif;
     color: #2c3e50;
-    display: grid;
     height: 100vh;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: 5rem repeat(4, 1fr);
 }
-#nav {
-  grid-row: 2;
-  grid-column: 1/3;
-  padding: 30px;
-  margin: auto;
-
-  a {
+.nav{
+  margin: auto 0;
+  &__link{
     font-weight: bold;
-    color: #2c3e50;
-
+    color: #fff;
+    text-decoration: none;
+    padding: 0 0.5rem;
     &.router-link-exact-active {
-      color: #d1515a;
+      color: $color-secondary;
+      text-decoration: underline;
     }
   }
 }
-label{
-  text-align: initial;
+.container__table{
+  display: table;
+  height: 90%;
+  margin: 0 auto;
+  width: 100%;
+  background: -webkit-linear-gradient(top, $color-primary 0%, $color-secondary 100%);
 }
-
-.form{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin: auto;
-    grid-row: 2;
-    grid-column: 1/3;
+.table{
+  display: table-cell;
+  vertical-align: middle;
+}
+.banner{
+  background: $color-primary;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 1rem;
+  &__img{
+    width: 10vh
+  }
+}
+.containerMsg{
+  margin: 4rem auto 1rem;
+  text-align: center;
+  max-width: 35rem;
+  height: 3rem;
+}
+.btnMsg{
+  width: 100%;
+  height: 100%;
+  border: 3px #d6d6d6 solid;
+  border-radius: 4px;
+  font-size: 2rem;
 }
 </style>

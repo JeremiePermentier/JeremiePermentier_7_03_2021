@@ -8,7 +8,8 @@ export default new Vuex.Store({
   state: {
     token: "",
     status: "",
-    user: ""
+    user: "",
+    test: null
   },
   mutations: {
     AUTH_REQUEST(state){
@@ -19,12 +20,18 @@ export default new Vuex.Store({
       state.token = token
       // state.user = user
     },
+    AUTH_CREATE(state){
+      state.status = 'userCreate'
+    },
     AUTH_ERROR(state){
       state.status = 'error'
     },
     LOGOUT(state){
       state.status = ''
       state.token = ''
+    },
+    GET_ALL_MESSAGE(state){
+      state.test = "ok"
     }
   },
   actions: {
@@ -47,7 +54,7 @@ export default new Vuex.Store({
         })
       })
     },
-    register({ commit }, user){
+    registerUser({ commit }, user){
       return new Promise((resolve, reject) => {
         commit('AUTH_REQUEST')
         axios({url: 'http://localhost:3000/api/users/signup', data: user, method: 'POST'})
@@ -57,7 +64,7 @@ export default new Vuex.Store({
           this.token = token
           this.user = resp.data.userId
           axios.defaults.headers.common['Authorization'] = token
-          commit('AUTH_SUCCESS', token)
+          commit('AUTH_CREATE')
           resolve(resp)
         })
         .catch(err => {
@@ -83,6 +90,14 @@ export default new Vuex.Store({
       .catch(err => {
         console.log(err)
       })
+    },
+    getMessage({commit}){
+      commit('AUTH_REQUEST')
+      axios.get('http://localhost:3000/api/message')
+      .then(response => {
+        commit('GET_ALL_MESSAGE', response)
+      })
+      .catch(error => console.log(error))
     }
   },
   modules: {
