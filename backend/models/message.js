@@ -21,8 +21,10 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   Message.init({
+    title: DataTypes.STRING,
+    pseudo: DataTypes.STRING,
     userId: DataTypes.INTEGER,
-    message: DataTypes.TEXT,
+    message: DataTypes.STRING,
     date: DataTypes.DATE,
     imageUrl: DataTypes.STRING
   }, {

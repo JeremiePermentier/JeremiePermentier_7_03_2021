@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 exports.getAllMessages = (req, res, next) => {
     models.Message.findAll({
-        attributes: ["id", "userId", "message", "imageUrl", "createdAt"],
+        attributes: ["id", "userId", "title", "message", "imageUrl", "createdAt"],
         order: [["createdAt", "DESC"]],
         include: [
             {
@@ -69,18 +69,18 @@ exports.createMessage = (req, res, next) => {
     // const userId = decodedToken.userId;
 
     //params
+    const title = req.body.title;
     const message = req.body.message;
     const userId = req.body.userId;
-    const imageUrl = null;
-
-    if(req.file){
-        imageUrl = `${req.protocol}://${req.get('host')}/img/${req.file.filename}`
-    }
+    const pseudo = req.body.pseudo;
+    const image = `${req.protocol}://${req.get('host')}/img/${req.file.filename}`;
 
     models.Message.create({
+        title: title,
         message: message,
         UserId: userId,
-        imageUrl: imageUrl
+        pseudo: pseudo,
+        imageUrl: image
     })
     .then(() => res.status(201).send({msg: "Votre message à été crée"}))
     .catch((error) => res.status(400).send(error))

@@ -20,7 +20,7 @@
 export default {
   methods: {
     hideNav(){
-      if(this.$store.state.status == "success"){
+      if(this.$store.state.token){
         return true
       } else {
         return false
@@ -42,7 +42,7 @@ body{
 }
 
 #app {
-    font-family: Avenir, Helvetica, Arial, sans-serif;
+    font-family: 'Oxygen', sans-serif;
     color: #2c3e50;
     height: 100vh;
 }

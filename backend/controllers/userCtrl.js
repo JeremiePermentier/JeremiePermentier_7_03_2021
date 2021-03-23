@@ -30,6 +30,7 @@ exports.signup = (req, res, next) => {
         .then(function(newUser){
           return res.status(201).json({
             'userId': newUser.id,
+            'pseudo': newUser.pseudo
           })
         })
         .catch(function(err){
@@ -60,6 +61,7 @@ exports.login = (req, res, next) => {
           }
           res.status(200).json({
               userId: user.id,
+              pseudo: user.pseudo,
               token: jwt.sign(
                   {userId: user.id },
                   'RANDOM_TOKEN_SECRET',

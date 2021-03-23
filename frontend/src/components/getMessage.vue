@@ -1,6 +1,7 @@
-<template v-for="info in infos" >
+<template  v-for="(info , imageUrl) in infos">
     <div>
-        <!-- <p v-for="info in infos" :key="info">{{ info }}</p> -->
+        <!-- <img  v-for="(infoImg, imageUrl) in infos" :key="imageUrl" :src="infoImg.imageUrl" alt="">
+        <h2 v-for="(infoTitle, title) in infos" :key="title">{{ infoTitle.imageUrl }}</h2> -->
     </div>
 </template>
 
@@ -15,10 +16,13 @@ export default {
             infos: null
         }
     },
-    mounted () {
-       axios.get('http://localhost:3000/api/message')
-      .then(response => (this.infos = response.data))
-      .catch(error => console.log(error))
+    mounted(){  
+        axios.get('http://localhost:3000/api/message')
+        .then(res => {
+            console.log(res.data)
+            this.infos = res.data
+        })
+        .catch(error => console.log(error))
     }
 }
 </script>

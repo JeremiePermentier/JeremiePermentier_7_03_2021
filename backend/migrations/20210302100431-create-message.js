@@ -8,6 +8,10 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      pseudo: {
+        allowNull: false,
+        type: Sequelize.STRING
+      },
       userId: {
         allowNull: false,
         type: Sequelize.INTEGER,
@@ -16,12 +20,16 @@ module.exports = {
           key: 'id'
         }
       },
+      title: {
+        allowNull: false,
+        type: Sequelize.STRING
+      },
       message: {
         allowNull: false,
-        type: Sequelize.TEXT
+        type: Sequelize.STRING
       },
       imageUrl: {
-        allowNull: true,
+        allowNull: false,
         type: Sequelize.STRING
       },
       createdAt: {
