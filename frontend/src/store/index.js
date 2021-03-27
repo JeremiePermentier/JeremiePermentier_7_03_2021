@@ -11,27 +11,29 @@ export default new Vuex.Store({
     status: "",
     userId: "",
     pseudo: "",
-    successMsg: "",
-    loading: true
+    message: "",
+    loading: true,
+    successMsg: false
   },
   mutations: {
     AUTH_REQUEST(state){
-      state.status = 'loading'
+      state.status = 'loading';
     },
-    AUTH_SUCCESS(state, token){
-      state.status = 'success'
-      state.token = token
-      // state.user = user
+    AUTH_SUCCESS(state, dataUser){
+      state.status = 'success';
+      state.token = dataUser.token;
+      state.userId = dataUser.userId;
+      state.pseudo = dataUser.pseudo;
     },
     AUTH_CREATE(state){
-      state.status = 'userCreate'
+      state.status = 'userCreate';
     },
     AUTH_ERROR(state){
-      state.status = 'error'
+      state.status = 'error';
     },
     LOGOUT(state){
-      state.status = ''
-      state.token = ''
+      state.status = '';
+      state.token = '';
     },
     GET_ALL_MESSAGE(state, res){
       state.allMsg = res;
@@ -40,7 +42,11 @@ export default new Vuex.Store({
       state.loading = false
     },
     AUTH_SUCCESS_MSG(state){
-      state.loading = true
+      state.loading = true;
+      state.successMsg = true;
+    },
+    GET_ONE_MESSAGE(state, message){
+      state.message = message;
     }
   },
   actions: {
@@ -49,13 +55,15 @@ export default new Vuex.Store({
         commit('AUTH_REQUEST')
         axios({url: 'http://localhost:3000/api/users/login', data: user, method: 'POST'})
         .then(res => {
-          const token = res.data.token
-          this.token = `Bearer ` + token
-          this.userId = res.data.userId
-          this.pseudo = res.data.pseudo
-          axios.defaults.headers.common['Authorization'] = this.token
-          commit('AUTH_SUCCESS', token)
+          const dataUser = {
+            token: `Bearer ` + res.data.token,
+            userId: res.data.userId,
+            pseudo: res.data.pseudo
+          }
+          axios.defaults.headers.common['Authorization'] = dataUser.token
+          commit('AUTH_SUCCESS', dataUser)
           resolve(res)
+          console.log(res)
         })
         .catch(err => {
           commit('AUTH_ERROR')
@@ -106,15 +114,7 @@ export default new Vuex.Store({
         console.log(err);
         commit('AUTH_ERROR_MSG');
       })
-    },
-    // getMessage({commit}){
-    //   commit('AUTH_REQUEST')
-    //   axios.get('http://localhost:3000/api/message')
-    //   .then(res => {
-    //     commit('GET_ALL_MESSAGE', res)
-    //   })
-    //   .catch(error => console.log(error))
-    // }
+    }
   },
   modules: {
   },

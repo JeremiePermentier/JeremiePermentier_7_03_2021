@@ -2,9 +2,10 @@ const models = require("../models");
 const fs = require("fs");
 const jwt = require('jsonwebtoken');
 
-exports.getAllMessages = (req, res, next) => {
+exports.getAllMessages = (req, res, next) => {    
+
     models.Message.findAll({
-        attributes: ["id", "userId", "title", "message", "imageUrl", "createdAt"],
+        attributes: ["id", "userId", "pseudo", "title", "message", "imageUrl", "createdAt"],
         order: [["createdAt", "DESC"]],
         include: [
             {
@@ -35,7 +36,7 @@ exports.getAllMessages = (req, res, next) => {
 exports.getMessage = (req, res, next) => {
     models.Message.findOne({
         where: { id: req.params.id },
-        attributes: ["id", "userId", "message", "imageUrl", "createdAt"],
+        attributes: ["id", "userId", "pseudo", "title", "message", "imageUrl", "createdAt"],
         include: [
             {
                 model: models.User,
@@ -64,14 +65,13 @@ exports.getMessage = (req, res, next) => {
 
 exports.createMessage = (req, res, next) => {
     // Récupération userId
-    // const token = req.headers.authorization.split(' ')[1];
-    // const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    // const userId = decodedToken.userId;
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    const userId = decodedToken.userId;
 
     //params
     const title = req.body.title;
     const message = req.body.message;
-    const userId = req.body.userId;
     const pseudo = req.body.pseudo;
     const image = `${req.protocol}://${req.get('host')}/img/${req.file.filename}`;
 

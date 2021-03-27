@@ -1,15 +1,15 @@
 const models = require("../models");
 const jwt = require('jsonwebtoken');
 const db = require("../models");
-const { use } = require("../routes/messages");
 
 exports.addComment = async (req, res, next) => {
     try {
+        const token = req.headers.authorization.split(' ')[1];
+        const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+        const userId = decodedToken.userId;
         const comment = req.body.comment;
-        const userId = req.body.userId;
         const messageId = req.params.id;
         const pseudo = await models.User.findOne({ where: { id: userId } });
-        console.log(pseudo)
 
         models.Comment.create({
             comment: comment,

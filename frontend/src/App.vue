@@ -86,6 +86,7 @@ body{
   height: 3rem;
 }
 .btnMsg{
+  cursor: pointer;
   width: 100%;
   height: 100%;
   border: 3px #d6d6d6 solid;

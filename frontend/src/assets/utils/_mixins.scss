@@ -1,0 +1,21 @@
+@import "./variables";
+
+@mixin btn(
+    $margin: 1rem 0 0 0,
+    $height: 3rem,
+    $border: 3px solid $color-primary,
+    $border-radius: 3px,
+    $background: $color-primary,
+    $font-weight: bold,
+    $color: #fff,
+    $text-transform: uppercase
+){
+    margin: $margin;
+    height: $height;
+    border: $border;
+    border-radius: $border-radius;
+    background: $background;
+    font-weight: $font-weight;
+    color: $color;
+    text-transform: $text-transform;
+}

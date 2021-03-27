@@ -7,8 +7,8 @@
 </template>
 
 <script>
-import Modale from '@/components/addMessage.vue'
-import Message from '@/components/getMessage.vue'
+import Modale from '@/components/AddMessage.vue'
+import Message from '@/components/GetMessage.vue'
 
   export default {
     components: {

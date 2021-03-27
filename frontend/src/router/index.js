@@ -23,10 +23,16 @@ const routes = [
     meta: {requiresAuth: true}
   },
   {
+    path: '/message/:id',
+    name: 'message',
+    component: () => import(/* webpackChunckName: "Message" */'../views/Message.vue'),
+    meta: {requiresAuth: true}
+  },
+  {
     path: '/login',
     name: 'login',
     component: () => import(/* webpackChunckName: "Login" */'../views/Login.vue')
-  }
+  },
 ]
 
 const router = new VueRouter({

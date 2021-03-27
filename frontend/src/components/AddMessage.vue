@@ -8,25 +8,31 @@
       <button class="modalInterior__btn" v-on:click="toggleModale">
         <i class="fas fa-times fa-2x"></i>
       </button>
-      <form v-if="this.$store.state.loading" class="form" @submit.prevent="sendMsg"
+      <form v-if="this.$store.state.loading && !this.$store.state.successMsg" class="form" @submit.prevent="sendMsg"
       enctype="multipart/form-data">
+        
         <label class="form__label" for="title">
           Titre
         </label>
+        
         <input v-model="title" class="form__inputText" type="text" name="title"
-        id="title" placeholder="Mon titre" required>
+        id="title" placeholder="Mon titre" autocomplete="off" required>
+        
         <label  for="images" class="form__label">
           Ajouter une image
         </label>
+        
         <input @change="uploadImage"
         accept="image/png,
         image/jpeg,
         image/bmp,
         image/gif" ref="file" class="form__inputFile"
          type="file" name="image" id="images" required>
+
         <label class="form__label" for="message">
           Votre message
         </label>
+
         <textarea v-model="message" id="message" class="form__inputTextarea"
         placeholder="ajoutez plusieurs lignes"
         rows="10" cols="40" minlength="10" maxlength="400" required>
@@ -36,6 +42,11 @@
       
       <div v-else-if="!this.$store.state.loading" class="loader">
 
+      </div>
+      <div class="validMsg" v-if="this.$store.state.successMsg">
+        <p>Votre message a bien été enregistré</p>
+        <i class="validMsg__btn--icon far fa-check-circle fa-7x"></i>
+        <button v-on:click="backToHome" class="validMsg__btn" type="submit">Retour</button>
       </div>
     </div>
 
@@ -63,29 +74,21 @@ export default {
       const file = this.$refs.file.files[0];
       this.file = file;
     },
+    // Send form
     sendMsg(){
       this.loading = false;
       const formData = new FormData();
       formData.append("image", this.file);
       formData.append("title", this.title);
       formData.append("message", this.message);
-      formData.append("userId", this.$store.userId);
-      formData.append("pseudo", this.$store.pseudo);
+      formData.append("pseudo", this.$store.state.pseudo);
       this.addMessage(formData)
-      // .then( async () => {
-      //   try {
-      //     let test = await this.successMsg;
-      //     if(test === 'success'){
-      //       this.loading = false
-      //     }
-      //   } catch (error) {
-      //     console.log(error)
-      //   }
-      //   this.loading = true
-      // })
-      // .catch(() => {
-      //   this.loading = true;
-      // })
+      this.title = '';
+      this.message = '';
+      this.file = '';
+    },
+    backToHome(){
+      this.$store.state.successMsg = false;
     }
   }
 }
@@ -94,6 +97,7 @@ export default {
 <style lang="scss" scoped>
 // Variables
 @import "../assets/utils/_variables.scss";
+@import "../assets/utils/_mixins.scss";
 
 .modale{
   position: fixed;
@@ -127,6 +131,7 @@ export default {
     right: 10px;
     background: none;
     border: none;
+    cursor: pointer;
   }
 }
 
@@ -159,16 +164,10 @@ export default {
   &__inputTextarea{
     border: 3px solid #d6d6d6;
     border-radius: 3px;
+    resize: none;
   }
   &__btn{
-    margin: 1rem 0 0 0;
-    height: 3rem;
-    border: 3px solid $color-primary;
-    border-radius: 3px;
-    background: $color-primary;
-    font-weight: bold;
-    color: #fff;
-    text-transform: uppercase;
+    @include btn;
   }
 }
 .loader {
@@ -301,5 +300,17 @@ export default {
   }
 }
 
+.validMsg{
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-around;
+  &__btn{
+    @include btn;
+    &--icon{
+      color: #41b3a3;
+    }
+  }
+}
 
 </style>
