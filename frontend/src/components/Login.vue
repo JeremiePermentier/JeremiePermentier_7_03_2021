@@ -50,10 +50,9 @@ export default {
     }
 
 
-
-      this.submitLogin({email, password})
-     .then(() => this.$router.push('/'))
-     .catch(err => console.log(err))
+    this.submitLogin({email, password})
+    .then(() => this.$router.push('/'))
+    .catch(err => console.log(err))
     },
     validEmail(email){
       var regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;

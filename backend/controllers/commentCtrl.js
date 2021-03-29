@@ -36,11 +36,12 @@ exports.updateComment = (req, res, next) => {
 
 exports.deleteComment = async (req, res, next) => {
     try{
-        const userId = req.body.userId;
-        const checkUserAdmin = await models.User.findOne({ where: { id: userId } });
+        const token = req.headers.authorization.split(' ')[1];
+        const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+        const userId = decodedToken.userId;
         const comment = await models.Comment.findOne({ where: { id: req.params.id } });
 
-        if (userId == comment.UserId || checkUserAdmin.isAdmin === true ){
+        if (userId == comment.UserId){
             models.Comment.destroy({ where: { id: req.params.id } });
             res.status(200).send({msg: "Votre commentaire à bien été supprimé"})
         } else {

@@ -13,7 +13,8 @@ export default new Vuex.Store({
     pseudo: "",
     message: "",
     loading: true,
-    successMsg: false
+    successMsg: false,
+    allMsg: ""
   },
   mutations: {
     AUTH_REQUEST(state){
@@ -36,7 +37,7 @@ export default new Vuex.Store({
       state.token = '';
     },
     GET_ALL_MESSAGE(state, res){
-      state.allMsg = res;
+      state.allMsg = res.data;
     },
     AUTH_REQUEST_MSG(state){
       state.loading = false
@@ -98,6 +99,14 @@ export default new Vuex.Store({
       this.token = ""
       delete axios.defaults.headers.common['Authorization']
     },
+    getAllMessage({commit}){
+      axios.get('http://localhost:3000/api/message')
+        .then(res => {
+          console.log(res)
+            commit('GET_ALL_MESSAGE', res)
+        })
+        .catch(error => console.log(error))
+    },
     addMessage({commit}, data){
       commit('AUTH_REQUEST_MSG');
       axios({
@@ -114,9 +123,25 @@ export default new Vuex.Store({
         console.log(err);
         commit('AUTH_ERROR_MSG');
       })
-    }
+    },
+    deleteMessage({commit}, data){
+      axios.delete(`http://localhost:3000/api/message/${data.id}`)
+      .then(res => {
+          console.log(res);
+          commit('AUTH_SUCCESS_MSG');
+      })
+      .catch((err) => console.log(err))
+    },
   },
-  modules: {
+  methods: {
+    restart(){
+      axios.get('http://localhost:3000/api/message')
+        .then(res => {
+          console.log(res)
+          this.allMsg = res.data
+        })
+        .catch(error => console.log(error))
+    }
   },
   getters: {
     isLoggedIn: state => !!state.token,

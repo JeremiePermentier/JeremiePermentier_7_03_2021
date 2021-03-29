@@ -25,37 +25,43 @@
                     </p>
                 </div>
             </div>
-            <button class="trash"><i class="fas fa-trash-alt"></i></button>
-            <button class="update"><i class="fas fa-pen"></i></button>
-            <input type="checkbox" name="" id="">
-            <button class="plus"><i class="fas fa-plus"></i></button>
+            <button v-if="info.userId === userId" @click="deleteMsg(info.id)" class="btn" :class="{ 'trash': userClick, 'btnTrash': userClick == false }"><i class="fas fa-trash-alt"></i></button>
+            <button v-if="info.userId === userId" class="btn" :class="{ 'update': userClick, 'btnUpdate': userClick == false }"><i class="fas fa-pen"></i></button>
+            <button v-if="info.userId === userId" @click="btnClick()" class="plus"><i class="fas fa-plus"></i></button>
         </div>
     </div>
 </template>
 
 <script>
-// import {mapActions} from "vuex";
-import axios from 'axios'
+import {mapActions} from "vuex";
 
 export default {
     name: 'Message',
     data(){
         return{
-            infos: null,
+            infos: this.$store.state.allMsg,
+            userClick: null,
+            userId: this.$store.state.userId
         }
     },
     mounted(){  
-        axios.get('http://localhost:3000/api/message')
-        .then(res => {
-            this.infos = res.data
-            console.log(this.infos[0].pseudo)
-        })
-        .catch(error => console.log(error))
+        this.$store.dispatch("getAllMessage");
     },
     methods: {
+        ...mapActions(["deleteMessage"]),
         getOnMsg(id){
-        this.$router.push(`message/${id}`)
-    }
+            this.$router.push(`message/${id}`)
+        },
+        btnClick(){
+            if(this.userClick == null || this.userClick == false){
+                this.userClick = true;
+            } else {
+                this.userClick = false;
+            }
+        },
+        deleteMsg(id){
+            this.deleteMessage({id})
+        }
     }
 }
 </script>
@@ -70,18 +76,47 @@ export default {
     position: relative;
     & > button{
             position: absolute;
+            border: 3px solid #00000075;
             top: 15rem;
             right: 1rem;
-            background: #000;
+            background: #00000075;
             color: white;
             padding: 1rem;
             border-radius: 100%;
         }
+    .btn{
+        opacity: 0;
+    }
+    .btnTrash{
+        position: absolute;
+        border: 3px solid #00000075;
+        top: 15rem;
+        right: 1rem;
+        background: #00000075;
+        color: white;
+        padding: 1rem;
+        border-radius: 100%;
+        opacity: 0;
+        animation: trashAnimationBack 400ms ease-in-out both;
+    }
+    .btnUpdate{
+        position: absolute;
+        border: 3px solid #00000075;
+        top: 15rem;
+        right: 1rem;
+        background: #00000075;
+        color: white;
+        padding: 1rem;
+        border-radius: 100%;
+        opacity: 0;
+        animation: updateAnimationBack 400ms ease both;
+    }
+    
     & > .trash{
-        transform: translateY(-4rem);
+        animation: trashAnimation 400ms ease-in-out both;
     }
     & > .update{
-        transform: translateX(-4rem);
+        animation: updateAnimation 400ms ease-in-out both;
     }
     &__title{
         color: #000;
@@ -111,5 +146,104 @@ export default {
             margin: 1rem;
         }
     }
+}
+
+@keyframes trashAnimation {
+  0%{
+      opacity: 0;
+  }
+  100%{
+      transform: translateY(-4rem);
+      opacity: 1;
+  }
+
+}
+@keyframes trashAnimationBack {
+  0%{
+      opacity: 1;
+      transform: translate(-0rem, -4rem);
+  }
+  35%{
+      opacity: 1;
+      transform: translate(-1rem, -4rem);
+  }
+  45%{
+      opacity: 1;
+      transform: translate(-2rem, -4rem);
+  }
+  55%{
+      opacity: 1;
+      transform: translate(-3rem, -4rem);
+  }
+  65%{
+      opacity: 1;
+      transform: translate(-4rem, -4rem);
+  }
+  75%{
+      opacity: 1;
+      transform: translate(-3rem, -3rem);
+  }
+  85%{
+      opacity: 1;
+      transform: translate(-2rem, -2rem);
+  }
+  95%{
+      opacity: 1;
+      transform: translate(-1rem, -1rem);
+  }
+  100%{
+      opacity: 0;
+      transform: translate(0, 0);
+  }
+
+}
+@keyframes updateAnimationBack {
+  0%{
+      opacity: 1;
+      transform: translate(-4rem, -0rem);
+  }
+  35%{
+      opacity: 1;
+      transform: translate(-4rem, -1rem);
+  }
+  45%{
+      opacity: 1;
+      transform: translate(-4rem, -2rem);
+  }
+  55%{
+      opacity: 1;
+      transform: translate(-4rem, -3rem);
+  }
+  65%{
+      opacity: 1;
+      transform: translate(-4rem, -4rem);
+  }
+  75%{
+      opacity: 1;
+      transform: translate(-3rem, -3rem);
+  }
+  85%{
+      opacity: 1;
+      transform: translate(-2rem, -2rem);
+  }
+  95%{
+      opacity: 1;
+      transform: translate(-1rem, -1rem);
+  }
+  100%{
+      opacity: 0;
+      transform: translate(0, 0);
+  }
+
+}
+@keyframes updateAnimation {
+  0%{
+      opacity: à;
+  }
+  100%{
+      transform: translateX(-4rem);
+      opacity: 1;
+  }
+
 }
 </style>

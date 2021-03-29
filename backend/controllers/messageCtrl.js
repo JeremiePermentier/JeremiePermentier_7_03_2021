@@ -92,21 +92,21 @@ exports.updateMessage = (req, res, next) => {
 };
 
 exports.deleteMessage = (req, res, next) => {
-    
-    const message = models.Message.findOne({
-        where: {id: req.params.id}
+
+
+    models.Message.findOne({
+        where: {id: req.params.id},
+        attributes: ["id", "userId", "pseudo", "title", "message", "imageUrl", "createdAt"],
     })
-    if(message.imageUrl){
-        const filename = post.imageUrl.split("/img")[1];
+    .then((msg) => {
+        console.log(msg)
+        const filename = msg.imageUrl.split("/img/")[1];
         fs.unlink(`img/${filename}`, () => {
-          models.Message.destroy({ where: { id: message.id } });
-          res.status(200).json({ message: "Post supprimé" });
-        });
-    } else {
-        models.Message.destroy({
-            where: {id: req.params.id}
+        models.Message.destroy({ where: { id: req.params.id }}, {truncate: true });
+        res.status(200).json({ message: "Post supprimé" });
         })
-        .then(() => res.status(201).send({msg: "Votre message à été supprimé"}))
-        .catch((error) => res.status(400).send(error))
-    }
+    })
+    .catch((err) => {
+        res.status(400).send(err)
+    })
 };

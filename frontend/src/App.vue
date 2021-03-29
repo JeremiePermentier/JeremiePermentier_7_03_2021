@@ -42,9 +42,9 @@ body{
 }
 
 #app {
-    font-family: 'Oxygen', sans-serif;
-    color: #2c3e50;
-    height: 100vh;
+  font-family: 'Oxygen', sans-serif;
+  color: #2c3e50;
+  height: 100vh;
 }
 .nav{
   margin: auto 0;
@@ -92,5 +92,10 @@ body{
   border: 3px #d6d6d6 solid;
   border-radius: 4px;
   font-size: 2rem;
+}
+
+.user{
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

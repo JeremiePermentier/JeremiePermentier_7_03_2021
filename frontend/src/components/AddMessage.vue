@@ -67,7 +67,7 @@ export default {
       file: '',
     }
   },
-  props: ['revele', 'toggleModale' ],
+  props: ['revele', 'toggleModale'],
   methods: {
     ...mapActions(["addMessage"]),
     uploadImage(){

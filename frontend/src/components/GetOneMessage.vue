@@ -31,7 +31,7 @@
                 <textarea name="comment" v-model="message" placeholder="Écrire un commentaire..." class="comment__ctrl--textarea" id="comment"
                  cols="50" rows="6" minlength="10" maxlength="300" required></textarea>
                 <div class="comment__ctrl--btn">
-                    <button class="cancel">Annuler</button>
+                    <!-- <button :disabled="message == false" @click="alert('ok')" class="cancel">Annuler</button> -->
                     <button class="send" >Envoyer</button>    
                 </div> 
             </form>
@@ -40,9 +40,9 @@
             <p class="comment__avatar">{{ comment.User.pseudo[0] }}</p>
             <div class="commentUser__container">
                 <p class="commentUser__text">{{ comment.comment }}</p>
-                <div class="commentUser__ctrl">
-                    <i title="Modifier le message" class="fas fa-pen"></i>
-                    <i title="Supprimer le commentaire" class="fas fa-trash-alt"></i>
+                <div v-if="comment.userId == userId" class="commentUser__ctrl">
+                    <button><i title="Modifier le message" class="fas fa-pen"></i></button>
+                    <button @click="deleteComment(comment.id)" ><i title="Supprimer le commentaire" class="fas fa-trash-alt"></i></button>
                 </div>
             </div>
         </div>
@@ -117,17 +117,23 @@ import {mapActions} from "vuex";
                 })
                 .then(res => {
                     console.log(res);
-                     this.restart()
+                    this.restart()
                     this.message = ""
                 })
                 .catch(err => {
                     console.log(err);
                 })
-                }
-            // const formData = new FormData();
-            // formData.append("message", this.message);
-            // formData.append("id", this.$route.params.id)
-            // this.addComment(formData)
+            },
+            deleteComment(id){
+                axios.delete(`http://localhost:3000/api/comment/${id}`)
+                .then((res) => {
+                    console.log(res)
+                    this.restart()
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+            }
         }
     }
 </script>
@@ -144,16 +150,9 @@ import {mapActions} from "vuex";
     &__title{
         color: #000;
         display: inline-block;
-        cursor: pointer;
-        &:hover{
-            color: $color-primary;
-            text-decoration: underline;
-            text-decoration-color: $color-primary;
-        }
     }
     &__container{
         height: 300px;
-        cursor: pointer;
         &--img{
             max-width: 100%;
             width: max-content;
@@ -209,6 +208,7 @@ import {mapActions} from "vuex";
         border: 1px solid;
         padding: 0.5rem;
         margin: 0.25rem;
+        cursor: pointer;
     }
 .send{
     border-color: $color-primary;
@@ -224,7 +224,7 @@ import {mapActions} from "vuex";
     display: flex;
     justify-content: space-between;
     &__container{
-        width: 100%;
+        width: 85%;
         margin: 0 0 0 1rem;
     }
     &__text{
@@ -241,8 +241,11 @@ import {mapActions} from "vuex";
         padding: 0.5rem;
         border: 1.5px solid #d1d1d1;
         border-radius: 0 0 4px 4px;
-        & > i{
-            margin: 0 1rem;
+        & > button{
+            margin: 0 0.5rem;
+            background: #fff;
+            border: none;
+            cursor: pointer;
         }
     }
 }

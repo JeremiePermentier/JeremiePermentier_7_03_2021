@@ -76,17 +76,27 @@ exports.login = (req, res, next) => {
 
 exports.getUser = (req, res, next) => {
   models.User.findOne({
-    where: { id : req.params.id }
-    .then(user => {
-      if (!user){
-        return res.status(401).json({ error: 'Utilisateur non trouvé !'})
-      } else {
-        res.status(200).send(user);
+    where: { id : req.params.id },
+    include: [
+      {
+        model: models.Message,
+        attributes: ["id", "message"]
+      },
+      {
+        model: models.Comment,
+        attributes: ["id" ,"comment"]
       }
-    })
-    .catch(error => {
-      return res.status(500).send({ error: "Erreur du serveur"})
-    })
+    ]
+  })
+  .then(user => {
+    if (!user){
+      return res.status(401).json({ error: 'Utilisateur non trouvé !'})
+    } else {
+      res.status(200).send(user);
+    }
+  })
+  .catch(error => {
+    return res.status(500).send({ error: "Erreur du serveur"})
   })
 };
 exports.updateUser = (req, res, next) => {
