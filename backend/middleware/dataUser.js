@@ -9,13 +9,17 @@ exports.valid = (req, res, next) => {
     .is().max(100)              // Maximum length 100
     .has().uppercase()          // Must have uppercase letters
     .has().lowercase()          // Must have lowercase letters
-    .has().digits(2)            // Must have at least 2 digits
+    .has().digits(1)            // Must have at least 2 digits
     .has().not().spaces()       // Should not have spaces
 
-    if (!emailValidator.validate(req.body.email) || !schema.validate(req.body.password)){
+    if (!emailValidator.validate(req.body.email)){
         return res.status(400).send({
             error: "Vérifier votre addresse email, le mot de passe doit contenir un minimum de 10 caractères avec des minuscules et majuscules et sans mot de passe."
         });
+    } else if (!schema.validate(req.body.password)){
+        return res.status(400).send({
+          error: "Vérifier votre mot de passe, il doit contenir un minimum de 10 caractères avec des minuscules et majuscules et sans espace."
+      });
     } else if (
         emailValidator.validate(req.body.email) ||
         passwordSchema.validate(req.body.password)

@@ -14,7 +14,8 @@ module.exports = {
         references: {
           model: 'Messages',
           key: 'id'
-        }
+        },
+        onDelete: 'CASCADE'
       },
       pseudo: {
         type: Sequelize.STRING,
@@ -26,7 +27,8 @@ module.exports = {
         references: {
           model: 'Users',
           key: 'id'
-        }
+        },
+        onDelete: 'CASCADE'
       },
       comment: {
         allowNull: false,

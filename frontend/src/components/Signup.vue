@@ -1,16 +1,19 @@
 <template>
     <div class="container__table">
       <div class="table">
-        <form class="form" @submit.prevent="register" novalidate="true">
+        <form class="form" @submit.prevent="register">
         <label class="form__label" for="pseudo">Pseudo :</label>
-        <input class="form__input" type="text" id="pseudo" placeholder="Pseudo" v-model="pseudo" min="4" max="10" required>
-        <span v-if="errorPseudo">{{ errorPseudo }}</span>
+        <input class="form__input" type="text" id="pseudo"
+        placeholder="Pseudo" v-model="pseudo" 
+        minlength="4" maxlength="10"
+        autocomplete="off" required>
         <label class="form__label" for="email">Email :</label>
-        <input class="form__input" type="text" id="email" placeholder="Email" v-model="email" required>
-        <span v-if="errorEmail">{{ errorEmail }}</span>
+        <input class="form__input" type="email" id="email"
+        placeholder="Email" v-model="email" required>
         <label class="form__label" for="password">Mot de passe</label>
-        <input class="form__input" type="password" id="password" placeholder="Mot de passe" v-model="password" required>
-        <span v-if="errorPassword">{{ errorPassword }}</span>
+        <input class="form__input" type="password" 
+        id="password" placeholder="Mot de passe" 
+        v-model="password" minlength="10" maxlength="100" required>
         <button class="form__button" type="submit" :disabled="email == false || password == false || pseudo == false">Créer un compte</button>
       </form>
       </div>
@@ -29,10 +32,7 @@ export default {
     return{
       pseudo: "",
       email: "",
-      password: "",
-      errorEmail: null,
-      errorPassword: null,
-      errorPseudo: null
+      password: ""
     }
   },
   methods: {
@@ -44,33 +44,9 @@ export default {
         password: this.password
       }
 
-    if(!this.pseudo){
-      this.errorPseudo = "N'oubliez pas votre pseudo";
-    } else {
-      this.errorPseudo = null;
-    }
-
-    if (!this.email){
-      this.errorEmail = "N'oubliez pas votre email";
-    } else if (!this.validEmail(this.email)){
-      this.errorEmail = "Votre email ne correspond pas au format attendue";
-    } else {
-      this.errorEmail = null;
-    }
-
-    if(!this.password){
-      this.errorPassword = "N'oubliez pas votre mot de passe";
-    } else {
-      this.errorPassword = null;
-    }
-
       this.registerUser(data)
       .then(() => this.$router.push('/login'))
       .catch(err => console.log(err))
-    },
-    validEmail(email){
-      var regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-      return regex.test(email);
     }
   }
 }
@@ -81,11 +57,10 @@ export default {
 
 // Variables 
 @import "../assets/utils/_variables.scss";
-
+@import "../assets/utils/_mixins.scss";
 
 .form{
-    display: flex;
-    flex-direction: column;
+    @include display;
     &__label{
       position: absolute;
       left: -9999px;
@@ -102,16 +77,17 @@ export default {
       font-weight: bold;
       outline-color: $color-secondary;
     }
-    &__input:hover{
-      background: rgba($color: #fff, $alpha: 0.5);
-    }
     &__input{
       background: rgba($color: #fff, $alpha: 0.25);
       text-align: center;
       color: #fff;
       transition: transform 300ms ease;
+      position: relative;
       &::placeholder{
         color: #fff;
+      }
+      &:hover{
+        background: rgba($color: #fff, $alpha: 0.5);
       }
       &:focus{
         background: #fff;
@@ -129,19 +105,19 @@ export default {
         transform: translateY(5px);
       }
     }
-    span{
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 2rem;
-      width: 15rem;
-      background: #fff;
-      border: 1px solid #fff;
-      border-radius: 3px;
-      padding: 0;
-      margin: 0 auto 1rem auto;
-      font-size: 1rem;
-      font-weight: bold;
-    }
+    // span{
+    //   @include display($dirColumn: inherit);
+    //   align-items: center;
+    //   justify-content: center;
+    //   height: 2rem;
+    //   width: 15rem;
+    //   background: #fff;
+    //   border: 1px solid #fff;
+    //   border-radius: 3px;
+    //   padding: 0;
+    //   margin: 0 auto 1rem auto;
+    //   font-size: 1rem;
+    //   font-weight: bold;
+    // }
 }
 </style>

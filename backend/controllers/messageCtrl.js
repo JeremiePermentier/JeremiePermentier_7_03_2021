@@ -1,4 +1,5 @@
 const models = require("../models");
+const token = require("../middleware/token")
 const fs = require("fs");
 const jwt = require('jsonwebtoken');
 
@@ -18,8 +19,7 @@ exports.getAllMessages = (req, res, next) => {
             },
             {
                 model: models.Comment,
-                attributes: ["id", "userId", "comment"],
-                order: [["createdAt", "DESC"]],
+                attributes: ["id", "userId", "comment", "createdAt"],
                 include: [
                     {
                         model: models.User,
@@ -29,8 +29,8 @@ exports.getAllMessages = (req, res, next) => {
             }
         ]
     })
-    .then(message => res.status(200).json(message))
-    .catch(error => res.status(400).json(error))
+    .then(message => res.status(200).send(message))
+    .catch(error => res.status(500).send(error))
 };
 
 exports.getMessage = (req, res, next) => {
@@ -48,8 +48,7 @@ exports.getMessage = (req, res, next) => {
             },
             {
                 model: models.Comment,
-                attributes: ["id", "userId", "comment"],
-                order: [["createdAt", "DESC"]],
+                attributes: ["id", "userId", "comment", "createdAt"],
                 include: [
                     {
                         model: models.User,
@@ -57,19 +56,18 @@ exports.getMessage = (req, res, next) => {
                     }
                 ]
             }
+        ],
+        order: [
+            [ models.Comment, "createdAt", "DESC" ]
         ]
     })
-    .then(message => res.status(200).json(message))
-    .catch(error => res.status(400).send(error))
+    .then(message => res.status(200).send(message))
+    .catch(error => res.status(500).send(error))
 };
 
 exports.createMessage = (req, res, next) => {
-    // Récupération userId
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
+    const userId = token.getUserId(req);
 
-    //params
     const title = req.body.title;
     const message = req.body.message;
     const pseudo = req.body.pseudo;
@@ -88,22 +86,42 @@ exports.createMessage = (req, res, next) => {
 
 
 exports.updateMessage = (req, res, next) => {
- 
+    // const title = req.body.title;
+    // const message = req.body.message;
+    // const image = `${req.protocol}://${req.get('host')}/img/${req.file.filename}`;
+
+    models.Message.findOne({
+        where: {id: req.params.id},
+        attributes: ["id", "userId", "pseudo", "title", "message", "imageUrl", "createdAt"],
+    })
+    .then(msg => {
+
+
+
+
+        let message = req.body.message;
+        let title = req.body.title;
+        let imageUrl = `${req.protocol}://${req.get('host')}/img/${req.file.filename}`;
+        // msg.save({
+        //     fields: ["title", "message", "imageUrl"]
+        // })
+        msg.update({ title: title, message: message, imageUrl: imageUrl })
+        res.status(201).send({ message: "Votre message a été modifié"})
+    })
+    .catch(err => res.status(400).send(err))
 };
 
 exports.deleteMessage = (req, res, next) => {
-
 
     models.Message.findOne({
         where: {id: req.params.id},
         attributes: ["id", "userId", "pseudo", "title", "message", "imageUrl", "createdAt"],
     })
     .then((msg) => {
-        console.log(msg)
         const filename = msg.imageUrl.split("/img/")[1];
         fs.unlink(`img/${filename}`, () => {
-        models.Message.destroy({ where: { id: req.params.id }}, {truncate: true });
-        res.status(200).json({ message: "Post supprimé" });
+        models.Message.destroy({ where: { id: req.params.id }});
+        res.status(200).json({ message: "Votre message a été supprimé" });
         })
     })
     .catch((err) => {

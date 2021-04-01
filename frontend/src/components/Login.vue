@@ -66,10 +66,10 @@ export default {
 
 // Variables 
 @import "../assets/utils/_variables.scss";
+@import "../assets/utils/_mixins.scss";
 
 .form{
-    display: flex;
-    flex-direction: column;
+    @include display;
     &__label{
       position: absolute;
       left: -9999px;
@@ -115,7 +115,7 @@ export default {
       }
     }
     span{
-      display: flex;
+      @include display($dirColumn: inherit);
       align-items: center;
       justify-content: center;
       height: 2rem;

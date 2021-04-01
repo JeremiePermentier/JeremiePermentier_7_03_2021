@@ -1,5 +1,6 @@
 <template>
     <div>
+        <button  class="btnMsg" v-on:click="toggleModale">+</button>
         <div class="msg"  v-for="info in infos" :key="info.message">
             <div @click="getOnMsg(info.id)" class="msg__container">
                 <img class="msg__container--img" :src="info.imageUrl" alt="">
@@ -12,55 +13,140 @@
             <div class="msg__info">
                 <div>
                     <p>Publié par {{ info.pseudo }}<br/>
-                    le {{ info.createdAt }}</p>
+                    le {{ date(info.createdAt) }}</p>
                 </div>
                 <div class="msg__interaction">
                     <p class="msg__interaction--comment">
-                        {{ info.Comments.length }} Commentaire 
-                        <span v-if="info.Comments.length > 1">s</span>
+                        {{ info.Comments.length }} 
+                        Commentaire<span v-if="info.Comments.length > 1">s</span>
                     </p>
                     <p class="msg__interaction--like">
-                        {{ info.Likes.length }} like
-                        <span v-if="info.Likes.length > 1">s</span>
+                        {{ info.Likes.length }} 
+                        like<span v-if="info.Likes.length > 1">s</span>
                     </p>
                 </div>
             </div>
-            <button v-if="info.userId === userId" @click="deleteMsg(info.id)" class="btn" :class="{ 'trash': userClick, 'btnTrash': userClick == false }"><i class="fas fa-trash-alt"></i></button>
-            <button v-if="info.userId === userId" class="btn" :class="{ 'update': userClick, 'btnUpdate': userClick == false }"><i class="fas fa-pen"></i></button>
-            <button v-if="info.userId === userId" @click="btnClick()" class="plus"><i class="fas fa-plus"></i></button>
+        </div>
+
+        <div v-if="modale" class="modale">
+            <div class="modale__overlay" v-on:click="toggleModale">
+
+            </div>
+            <div class="modalInterior">
+                <button class="modalInterior__btn" v-on:click="toggleModale">
+                    <i class="fas fa-times fa-2x"></i>
+                </button>
+      
+                <form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="form" @submit.prevent="sendMsg"
+                enctype="multipart/form-data">
+        
+                <label class="form__label" for="title">
+                    Titre
+                </label>
+        
+                <input v-model="title" class="form__inputText" type="text" name="title"
+                id="title" placeholder="Mon titre" autocomplete="off" required>
+        
+                <label  for="images" class="form__label">
+                    Ajouter une image
+                </label>
+        
+                <input @change="uploadImage"
+                accept="image/png,
+                image/jpeg,
+                image/bmp,
+                image/gif" ref="file" class="form__inputFile"
+                type="file" name="image" id="images" required>
+
+                <label class="form__label" for="message">
+                Votre message
+                </label>
+
+                <textarea v-model="message" id="message" class="form__inputTextarea"
+                placeholder="ajoutez plusieurs lignes"
+                rows="10" cols="40" minlength="10" maxlength="400" required>
+                </textarea>
+                <button class="form__btn" type="submit">Envoyer</button>
+                </form>
+      
+                <div v-else-if="this.$store.state.loading" class="loader"></div>
+
+                <div class="validMsg" v-if="this.$store.state.successMsg">
+                    <p>Votre message a bien été enregistré</p>
+                    <i class="validMsg__btn--icon far fa-check-circle fa-7x"></i>
+                    <button v-on:click="backToHome" class="validMsg__btn" type="submit">Retour</button>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
 import {mapActions} from "vuex";
+import axios from 'axios';
 
 export default {
     name: 'Message',
     data(){
         return{
-            infos: this.$store.state.allMsg,
-            userClick: null,
-            userId: this.$store.state.userId
+            infos: 'this.$store.state.infos',
+            userId: this.$store.state.userId,
+            update: false,
+            title: '',
+            message: '',
+            file: '',
+            modale: false
         }
     },
-    mounted(){  
-        this.$store.dispatch("getAllMessage");
+    mounted(){
+        axios.get('http://localhost:3000/api/message')
+        .then(res => {
+            this.infos = res.data
+        })
+        .catch(error => console.log(error))
     },
     methods: {
-        ...mapActions(["deleteMessage"]),
+        ...mapActions(["addMessage", "getAllMessage"]),
+        toggleModale(){
+            if(this.modale === false){
+                this.modale = true
+            } else {
+                this.modale = false
+            }
+        },
+        date(date){
+            let formatDate = new Date(date);
+            return formatDate.toLocaleString('fr-FR')
+        },
         getOnMsg(id){
             this.$router.push(`message/${id}`)
         },
-        btnClick(){
-            if(this.userClick == null || this.userClick == false){
-                this.userClick = true;
-            } else {
-                this.userClick = false;
-            }
+        uploadImage(){
+            const file = this.$refs.file.files[0];
+            this.file = file;
         },
-        deleteMsg(id){
-            this.deleteMessage({id})
+        sendMsg(){
+        this.loading = false;
+        const formData = new FormData();
+        formData.append("image", this.file);
+        formData.append("title", this.title);
+        formData.append("message", this.message);
+        formData.append("pseudo", this.$store.state.pseudo);
+        this.addMessage(formData)
+        this.title = '';
+        this.message = '';
+        this.file = '';
+        },
+        backToHome(){
+        this.$store.state.successMsg = false;
+        this.refresh()
+        },
+        refresh(){
+            axios.get('http://localhost:3000/api/message')
+            .then(res => {
+                this.infos = res.data
+            })
+            .catch(error => console.log(error))
         }
     }
 }
@@ -68,56 +154,14 @@ export default {
 
 <style lang="scss" scoped>
 @import "../assets/utils/_variables.scss";
+@import "../assets/utils/_mixins.scss";
 
 .msg{
     margin: 2rem 0;
     border-bottom: 1px solid #d6d6d6;
     text-align: left;
     position: relative;
-    & > button{
-            position: absolute;
-            border: 3px solid #00000075;
-            top: 15rem;
-            right: 1rem;
-            background: #00000075;
-            color: white;
-            padding: 1rem;
-            border-radius: 100%;
-        }
-    .btn{
-        opacity: 0;
-    }
-    .btnTrash{
-        position: absolute;
-        border: 3px solid #00000075;
-        top: 15rem;
-        right: 1rem;
-        background: #00000075;
-        color: white;
-        padding: 1rem;
-        border-radius: 100%;
-        opacity: 0;
-        animation: trashAnimationBack 400ms ease-in-out both;
-    }
-    .btnUpdate{
-        position: absolute;
-        border: 3px solid #00000075;
-        top: 15rem;
-        right: 1rem;
-        background: #00000075;
-        color: white;
-        padding: 1rem;
-        border-radius: 100%;
-        opacity: 0;
-        animation: updateAnimationBack 400ms ease both;
-    }
-    
-    & > .trash{
-        animation: trashAnimation 400ms ease-in-out both;
-    }
-    & > .update{
-        animation: updateAnimation 400ms ease-in-out both;
-    }
+
     &__title{
         color: #000;
         display: inline-block;
@@ -148,102 +192,220 @@ export default {
     }
 }
 
-@keyframes trashAnimation {
-  0%{
-      opacity: 0;
+.modale{
+  @include display($dirColumn: inherit);
+  justify-content: center;
+  align-items: center;
+  &__overlay{
+    background: rgba($color: #000000, $alpha: 0.5);
+    @include position;
   }
-  100%{
-      transform: translateY(-4rem);
-      opacity: 1;
-  }
-
 }
-@keyframes trashAnimationBack {
-  0%{
-      opacity: 1;
-      transform: translate(-0rem, -4rem);
+.modalInterior{
+  background: #fff;
+  color: #333;
+  width: 320px;
+  height: 425px;
+  padding: 50px;
+  @include position(
+    $top: 30%,
+    $right: inherit,
+    $bottom: inherit,
+    $left: inherit
+  );
+  &__btn{
+    @include position(
+    $position: absolute, 
+    $top: 10px,
+    $right: 10px,
+    $bottom: inherit,
+    $left: inherit
+  );
+    background: none;
+    border: none;
+    cursor: pointer;
   }
-  35%{
-      opacity: 1;
-      transform: translate(-1rem, -4rem);
-  }
-  45%{
-      opacity: 1;
-      transform: translate(-2rem, -4rem);
-  }
-  55%{
-      opacity: 1;
-      transform: translate(-3rem, -4rem);
-  }
-  65%{
-      opacity: 1;
-      transform: translate(-4rem, -4rem);
-  }
-  75%{
-      opacity: 1;
-      transform: translate(-3rem, -3rem);
-  }
-  85%{
-      opacity: 1;
-      transform: translate(-2rem, -2rem);
-  }
-  95%{
-      opacity: 1;
-      transform: translate(-1rem, -1rem);
-  }
-  100%{
-      opacity: 0;
-      transform: translate(0, 0);
-  }
-
 }
-@keyframes updateAnimationBack {
-  0%{
-      opacity: 1;
-      transform: translate(-4rem, -0rem);
-  }
-  35%{
-      opacity: 1;
-      transform: translate(-4rem, -1rem);
-  }
-  45%{
-      opacity: 1;
-      transform: translate(-4rem, -2rem);
-  }
-  55%{
-      opacity: 1;
-      transform: translate(-4rem, -3rem);
-  }
-  65%{
-      opacity: 1;
-      transform: translate(-4rem, -4rem);
-  }
-  75%{
-      opacity: 1;
-      transform: translate(-3rem, -3rem);
-  }
-  85%{
-      opacity: 1;
-      transform: translate(-2rem, -2rem);
-  }
-  95%{
-      opacity: 1;
-      transform: translate(-1rem, -1rem);
-  }
-  100%{
-      opacity: 0;
-      transform: translate(0, 0);
-  }
 
-}
-@keyframes updateAnimation {
-  0%{
-      opacity: à;
+.form{
+  @include display;
+  max-width: 400px;
+  margin: auto;
+  font-size: 1.25rem;
+  font-weight: bold;
+  & ::placeholder{
+    font-weight: bold;
+    color: #000;
+    text-indent: 0.5rem;
   }
-  100%{
-      transform: translateX(-4rem);
-      opacity: 1;
+  &__label{
+    text-align: left;
+    margin: 0 0 0.5rem 0;
   }
+  &__inputText{
+    margin: 0 0 0.5rem 0;
+    border: 3px solid #d6d6d6;
+    border-radius: 3px;
+    height: 3rem
+  }
+  &__inputFile{
+    margin: 0 0 0.5rem 0;
 
+  }
+  &__inputTextarea{
+    border: 3px solid #d6d6d6;
+    border-radius: 3px;
+    resize: none;
+  }
+  &__btn{
+    @include btn;
+  }
 }
+.loader {
+  @include position(
+    $position: relative, 
+    $top: 40%,
+    $right: inherit,
+    $bottom: inherit,
+    $left: inherit
+  );
+  color: $color-primary;
+  font-size: 90px;
+  text-indent: -9999em;
+  overflow: hidden;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  margin: auto;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-animation: load6 1.7s infinite ease, round 1.7s infinite ease;
+  animation: load6 1.7s infinite ease, round 1.7s infinite ease;
+}
+@-webkit-keyframes load6 {
+  0% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    0 -0.83em 0 -0.42em,
+    0 -0.83em 0 -0.44em,
+    0 -0.83em 0 -0.46em,
+    0 -0.83em 0 -0.477em;
+  }
+  5%,
+  95% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    0 -0.83em 0 -0.42em,
+    0 -0.83em 0 -0.44em,
+    0 -0.83em 0 -0.46em,
+    0 -0.83em 0 -0.477em;
+  }
+  10%,
+  59% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    -0.087em -0.825em 0 -0.42em,
+    -0.173em -0.812em 0 -0.44em,
+    -0.256em -0.789em 0 -0.46em,
+    -0.297em -0.775em 0 -0.477em;
+  }
+  20% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    -0.338em -0.758em 0 -0.42em,
+    -0.555em -0.617em 0 -0.44em,
+    -0.671em -0.488em 0 -0.46em,
+    -0.749em -0.34em 0 -0.477em;
+  }
+  38% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    -0.377em -0.74em 0 -0.42em,
+    -0.645em -0.522em 0 -0.44em,
+    -0.775em -0.297em 0 -0.46em,
+    -0.82em -0.09em 0 -0.477em;
+  }
+  100% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    0 -0.83em 0 -0.42em,
+    0 -0.83em 0 -0.44em,
+    0 -0.83em 0 -0.46em,
+    0 -0.83em 0 -0.477em;
+  }
+}
+@keyframes load6 {
+  0% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    0 -0.83em 0 -0.42em,
+    0 -0.83em 0 -0.44em,
+    0 -0.83em 0 -0.46em,
+    0 -0.83em 0 -0.477em;
+  }
+  5%,
+  95% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    0 -0.83em 0 -0.42em,
+    0 -0.83em 0 -0.44em,
+    0 -0.83em 0 -0.46em,
+    0 -0.83em 0 -0.477em;
+  }
+  10%,
+  59% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    -0.087em -0.825em 0 -0.42em,
+    -0.173em -0.812em 0 -0.44em,
+    -0.256em -0.789em 0 -0.46em,
+    -0.297em -0.775em 0 -0.477em;
+  }
+  20% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    -0.338em -0.758em 0 -0.42em,
+    -0.555em -0.617em 0 -0.44em,
+    -0.671em -0.488em 0 -0.46em,
+    -0.749em -0.34em 0 -0.477em;
+  }
+  38% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    -0.377em -0.74em 0 -0.42em,
+    -0.645em -0.522em 0 -0.44em,
+    -0.775em -0.297em 0 -0.46em,
+    -0.82em -0.09em 0 -0.477em;
+  }
+  100% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    0 -0.83em 0 -0.42em,
+    0 -0.83em 0 -0.44em,
+    0 -0.83em 0 -0.46em,
+    0 -0.83em 0 -0.477em;
+  }
+}
+@-webkit-keyframes round {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@keyframes round {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+.validMsg{
+  @include display;
+  height: 100%;
+  justify-content: space-around;
+  &__btn{
+    @include btn;
+    &--icon{
+      color: #41b3a3;
+    }
+  }
+}
+
 </style>

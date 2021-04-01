@@ -1,6 +1,5 @@
 <template>
-    <GetOneMessage>
-    </GetOneMessage>
+    <GetOneMessage></GetOneMessage>
 </template>
 
 <script>

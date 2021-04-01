@@ -38,7 +38,7 @@ exports.signup = (req, res, next) => {
         })
       });
     } else {
-      return res.status(409).json({ 'error': 'Pseudo déjà utilisé'});
+      return res.status(409).json({ 'error': 'Email déjà utilisé'});
     }
   })
   .catch(function(err){
@@ -80,13 +80,17 @@ exports.getUser = (req, res, next) => {
     include: [
       {
         model: models.Message,
-        attributes: ["id", "message"]
+        attributes: ["id", "title", "message", "createdAt"],
       },
       {
         model: models.Comment,
-        attributes: ["id" ,"comment"]
+        attributes: ["id" ,"comment", "createdAt"],
       }
-    ]
+    ],
+    order: [
+      [ models.Comment, "createdAt", "DESC" ],
+      [ models.Message, "createdAt", "DESC" ]
+  ]
   })
   .then(user => {
     if (!user){

@@ -1,5 +1,27 @@
 @import "./variables";
 
+@mixin display(
+    $dFlex: flex,
+    $dirColumn: column,
+){
+    display: $dFlex;
+    flex-direction: $dirColumn;
+}
+
+@mixin position(
+    $position: fixed,
+    $top: 0,
+    $right: 0,
+    $bottom: 0,
+    $left: 0,
+){
+    position: $position;
+    top: $top;
+    right: $right;
+    left: $left;
+    bottom: $bottom;
+}
+
 @mixin btn(
     $margin: 1rem 0 0 0,
     $height: 3rem,

@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="getOneMsg">
         <div class="msg container">
             <div class="msg__container">
                 <img :src="infos.imageUrl" alt="" class="msg__container--img">
@@ -11,7 +11,7 @@
             <div class="msg__info">
                 <div>
                     <p>Publié par {{ infos.pseudo }}<br/>
-                    le {{ infos.createdAt }}</p>
+                    le {{ date(infos.createdAt) }}</p>
                 </div>
                 <div class="msg__interaction">
                     <p class="msg__interaction--comment">{{ countComments() }} <i class="far fa-comment"></i></p>
@@ -22,6 +22,10 @@
                     </p>
                 </div>
             </div>
+            <div v-if="infos.userId == userId" class="delandupdate">
+                <button @click="deleteMessage()"><i class="fas fa-trash-alt"></i></button>
+                <button @click="updateMessage(infos.comment)"><i class="fas fa-pen"></i></button>
+            </div>
         </div>
         <div class="comment container">
             <p class="comment__avatar">
@@ -31,7 +35,7 @@
                 <textarea name="comment" v-model="message" placeholder="Écrire un commentaire..." class="comment__ctrl--textarea" id="comment"
                  cols="50" rows="6" minlength="10" maxlength="300" required></textarea>
                 <div class="comment__ctrl--btn">
-                    <!-- <button :disabled="message == false" @click="alert('ok')" class="cancel">Annuler</button> -->
+                    <button :disabled="message == false" @click="alert('ok')" class="cancel">Annuler</button>
                     <button class="send" >Envoyer</button>    
                 </div> 
             </form>
@@ -41,8 +45,76 @@
             <div class="commentUser__container">
                 <p class="commentUser__text">{{ comment.comment }}</p>
                 <div v-if="comment.userId == userId" class="commentUser__ctrl">
-                    <button><i title="Modifier le message" class="fas fa-pen"></i></button>
+                    <button @click="toggleComment(comment.id)"><i title="Modifier le message" class="fas fa-pen"></i></button>
                     <button @click="deleteComment(comment.id)" ><i title="Supprimer le commentaire" class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+        </div>
+        <div v-if="modale" class="modale">
+            <div class="modale__overlay">
+                <div class="modalInterior">
+                    <button class="modalInterior__btn" v-on:click="toggleComment">
+                        <i class="fas fa-times fa-2x"></i>
+                    </button>
+                    <form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="formModal" @submit.prevent="(updateComment())"
+                    enctype="multipart/form-data">
+                        
+                        <label class="formModal__label" for="message">
+                        Votre message
+                        </label>
+
+                        <textarea v-model="comment" id="message" class="formModal__inputTextarea"
+                        placeholder="ajoutez plusieurs lignes"
+                        rows="10" cols="40" minlength="10" maxlength="400" required>
+                        </textarea>
+                        <button class="formModal__btn" type="submit">Envoyer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div v-if="update" class="modale">
+            <div class="modale__overlay">
+                <div class="modalInterior">
+                    <button class="modalInterior__btn" v-on:click="updateMessage">
+                        <i class="fas fa-times fa-2x"></i>
+                    </button>
+                    <form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="form" @submit.prevent="sendMsg()"
+                        enctype="multipart/form-data">
+                        <label class="form__label" for="title">Titre</label>
+                        <input class="form__inputText" v-model="title" type="text" name="title"
+                        id="title" placeholder="Mon titre"
+                        autocomplete="off" >
+
+                        <label class="form__label" for="images">
+                            Ajouter une image
+                        </label>
+
+                        <input @change="uploadImage"
+                        accept="image/png,
+                        image/jpeg,
+                        image/bmp,
+                        image/gif" ref="file" class="form__inputFile"
+                        type="file" name="image" id="images">
+
+                        <label class="form__label" for="message">
+                        Votre message
+                        </label>
+
+                        <textarea v-model="message" id="message" class="form__inputTextarea"
+                        placeholder="ajoutez plusieurs lignes"
+                        rows="10" cols="40" minlength="10" maxlength="400">
+                        </textarea>
+
+                        <button class="form__btn" type="submit">Envoyer</button>
+                    </form>
+
+                    <div v-else-if="this.$store.state.loading" class="loader"></div>
+
+                    <div class="validMsg" v-if="this.$store.state.successMsg">
+                    <p>Votre message a bien été enregistré</p>
+                    <i class="validMsg__btn--icon far fa-check-circle fa-7x"></i>
+                    <button v-on:click="backToHome" class="validMsg__btn" type="submit">Retour</button>
+                </div>
                 </div>
             </div>
         </div>
@@ -59,9 +131,15 @@ import {mapActions} from "vuex";
             return{
                 infos: "",
                 comments: "",
+                comment: "",
                 likes: "",
                 userId: this.$store.state.userId,
-                message: ""
+                idComment: "",
+                message: "",
+                file: "",
+                title: "",
+                update: false,
+                modale: false
             }
         },
         mounted(){
@@ -74,11 +152,23 @@ import {mapActions} from "vuex";
         .catch(error => console.log(error))
         },
         methods:{
-            ...mapActions(["addComment"]),
+            ...mapActions(["addComment", "updateMsg"]),
+            toggleComment(id){
+                if(this.modale === true){
+                    this.modale = false
+                } else {
+                    this.modale = true
+                    this.idComment = id
+                }
+            },
+            date(date){
+                let formatDate = new Date(date);
+                return formatDate.toLocaleString('fr-FR')
+            },
             like(){
                 axios({url: 'http://localhost:3000/api/like/' + this.$route.params.id, method: 'POST'})
                 .then(() => {
-                    this.restart()
+                    this.refresh()
                 })
                 .catch(res => {console.log(res)})
             },
@@ -88,7 +178,7 @@ import {mapActions} from "vuex";
             countLikes(){
                 return this.likes.length
             },
-            restart(){
+            refresh(){
                 axios.get('http://localhost:3000/api/message/' + this.$route.params.id)
                 .then(res => {
                     this.infos = res.data
@@ -106,7 +196,6 @@ import {mapActions} from "vuex";
                     }
                 }
             },
-            // Send form
             sendComment(){
                 axios({
                     method: "post",
@@ -117,36 +206,93 @@ import {mapActions} from "vuex";
                 })
                 .then(res => {
                     console.log(res);
-                    this.restart()
+                    this.refresh()
                     this.message = ""
                 })
                 .catch(err => {
                     console.log(err);
                 })
             },
-            deleteComment(id){
-                axios.delete(`http://localhost:3000/api/comment/${id}`)
-                .then((res) => {
-                    console.log(res)
-                    this.restart()
-                })
-                .catch((err) => {
-                    console.log(err)
-                })
+            uploadImage(){
+            const file = this.$refs.file.files[0];
+            this.file = file;
+            console.log(file)
+        },
+            sendMsg(){
+            const formData = new FormData();
+            formData.append("id", this.$route.params.id)
+            formData.append("image", this.file);
+            formData.append("title", this.title);
+            formData.append("message", this.message);
+
+
+            this.updateMsg(formData)
+
+            this.title = '';
+            this.message = '';
+            this.file = '';
+        },
+        backToHome(){
+            this.$store.state.successMsg = false;
+            this.refresh()
+        },
+        updateComment(){
+            axios.put(`http://localhost:3000/api/comment/${this.idComment}`, {comment: this.comment})
+            .then((res) => {
+                console.log(res)
+                this.refresh()
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+        },
+        deleteComment(id){
+            axios.delete(`http://localhost:3000/api/comment/${id}`)
+            .then((res) => {
+                console.log(res)
+                this.refresh()
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+        },
+        deleteMessage(){
+            axios.delete(`http://localhost:3000/api/message/${this.$route.params.id}`)
+            .then((res) => {
+                console.log(res)
+                this.refresh()
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+        },
+        updateMessage(){
+            if(this.update === false){
+                this.update = true;
+            } else {
+                this.update = false;
             }
+        }
         }
     }
 </script>
 
 <style lang="scss" scoped>
 @import "../assets/utils/_variables.scss";
+@import "../assets/utils/_mixins.scss";
+
 .container{
     max-width: 500px;
     margin: 2rem auto;
 }
+
+.getOneMsg{
+    padding: 0 0 4rem 0;
+}
 .msg{
     border-bottom: 1px solid #d6d6d6;
     text-align: left;
+    position: relative;
     &__title{
         color: #000;
         display: inline-block;
@@ -162,7 +308,7 @@ import {mapActions} from "vuex";
         }
     }
     &__info, &__interaction{
-        display: flex;
+        @include display($dirColumn: inherit);
         justify-content: space-between;
         &--like, &--comment{
             margin: 1rem;
@@ -171,10 +317,10 @@ import {mapActions} from "vuex";
     }
 }
 .comment{
-    display: flex;
+    @include display($dirColumn: inherit);
     justify-content: space-between;
     &__avatar{
-        display: flex;
+        @include display($dirColumn: inherit);
         justify-content: center;
         align-items: center;
         margin: 0;
@@ -221,7 +367,7 @@ import {mapActions} from "vuex";
 }
 .commentUser{
     margin: 1rem auto;
-    display: flex;
+    @include display($dirColumn: inherit);
     justify-content: space-between;
     &__container{
         width: 85%;
@@ -247,6 +393,121 @@ import {mapActions} from "vuex";
             border: none;
             cursor: pointer;
         }
+    }
+}
+
+.form{
+    display: flex;
+    flex-direction:column;
+    background: #fff;
+    padding: 1rem;
+  &__label{
+    text-align: left;
+    margin: 0 0 0.5rem 0;
+  }
+  &__inputText{
+    margin: 0 0 0.5rem 0;
+    border: 3px solid #d6d6d6;
+    border-radius: 3px;
+    height: 3rem
+  }
+  &__inputFile{
+    margin: 0 0 0.5rem 0;
+
+  }
+  &__inputTextarea{
+    border: 3px solid #d6d6d6;
+    border-radius: 3px;
+    resize: none;
+  }
+  &__btn{
+    @include btn;
+  }
+}
+
+.formModal{
+  @include display;
+  max-width: 400px;
+  margin: auto;
+  font-size: 1.25rem;
+  font-weight: bold;
+  & ::placeholder{
+    font-weight: bold;
+    color: #000;
+    text-indent: 0.5rem;
+  }
+  &__label{
+    text-align: left;
+    margin: 0 0 0.5rem 0;
+  }
+  &__inputText{
+    margin: 0 0 0.5rem 0;
+    border: 3px solid #d6d6d6;
+    border-radius: 3px;
+    height: 3rem
+  }
+  &__inputFile{
+    margin: 0 0 0.5rem 0;
+
+  }
+  &__inputTextarea{
+    border: 3px solid #d6d6d6;
+    border-radius: 3px;
+    resize: none;
+  }
+  &__btn{
+    @include btn;
+  }
+}
+
+.modale{
+  @include display($dirColumn: inherit);
+  justify-content: center;
+  align-items: center;
+  &__overlay{
+    background: rgba($color: #000000, $alpha: 0.5);
+    @include position;
+  }
+}
+.modalInterior{
+  background: #fff;
+  color: #333;
+  width: 320px;
+  height: min-content;
+  padding: 50px;
+  @include position(
+    $top: 30%,
+    $right: inherit,
+    $bottom: inherit,
+    $left: 39%
+  );
+  &__btn{
+    @include position(
+    $position: absolute, 
+    $top: 1rem,
+    $right: 0,
+    $bottom: inherit,
+    $left: 23rem
+  );
+    height: fit-content;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+}
+.delandupdate{
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid #d1d1d1;
+    border-radius: 0 0 1rem 0;
+    background: #d1d1d1;
+    top: 20vh;
+    left: 28vw;
+    & > button{
+        background: none;
+        border: none;
+        padding: 0.5rem;
     }
 }
 </style>

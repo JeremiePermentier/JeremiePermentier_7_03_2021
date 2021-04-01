@@ -24,14 +24,19 @@ exports.addComment = async (req, res, next) => {
 };
 
 exports.updateComment = (req, res, next) => {
-    //params
-    const userId = req.body.userId;
-    const imageUrl = null;
+    
+    models.Comment.findOne({
+        where: {id: req.params.id},
+        attributes: ["id", "userId", "comment"]
+    })
+    .then(comment => {
+        let newComment = req.body.comment;
 
-    const message = models.Message.findOne({ where: { id: req.params.id } })
-    if (userId === message.userId){
-        imageUrl = `${req.protocol}`
-    }
+        comment.update({ comment: newComment})
+        res.status(201).send({ message: "Votre commentaire a été modifié"})
+    })
+    .catch(err => res.status(400).send(err))
+
 };
 
 exports.deleteComment = async (req, res, next) => {
