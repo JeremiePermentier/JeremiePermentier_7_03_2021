@@ -101,8 +101,11 @@ export default {
       box-shadow: 0px 5px 0px 0px #cfcfcf;
       transition: 400ms;
       &:hover{
-        box-shadow: 0px 2px 0px 0px #cfcfcf;
-        transform: translateY(5px);
+        box-shadow: 0px 3px 0px 0px #cfcfcf;
+        transform: translateY(4px);
+      }
+      &:focus{
+        box-shadow: 0px 1px 0px 0px #cfcfcf;
       }
     }
     // span{

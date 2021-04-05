@@ -1,56 +1,66 @@
 const models = require("../models");
 const jwt = require('jsonwebtoken');
-const db = require("../models");
+const token = require("../middleware/token");
 
 exports.addComment = async (req, res, next) => {
     try {
-        const token = req.headers.authorization.split(' ')[1];
-        const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-        const userId = decodedToken.userId;
+        const userId = token.getUserId(req);
         const comment = req.body.comment;
         const messageId = req.params.id;
-        const pseudo = await models.User.findOne({ where: { id: userId } });
+        const user = await models.User.findOne({ where: { id: userId } });
 
-        models.Comment.create({
-            comment: comment,
-            pseudo: pseudo.pseudo,
-            UserId: userId,
-            MessageId: messageId
-        })
-        return res.status(201).send({msg: "Votre commentaire à été posté"})
+        if(comment.length < 10){
+            res.status(400).send({ msg: "votre commentaire est trop court"})
+        } else if (comment.length > 300){
+            res.status(400).send({ msg: "votre commentaire est trop long"})
+        } else {
+            models.Comment.create({
+                comment: comment,
+                pseudo: user.pseudo,
+                UserId: userId,
+                MessageId: messageId
+            })
+            res.status(201).send({msg: "Votre commentaire à été posté"})
+        }
     } catch (error){
         return res.status(500).send(error)
     }
 };
 
-exports.updateComment = (req, res, next) => {
-    
-    models.Comment.findOne({
-        where: {id: req.params.id},
-        attributes: ["id", "userId", "comment"]
-    })
-    .then(comment => {
-        let newComment = req.body.comment;
+exports.updateComment = async (req, res, next) => {
+    try {
+        const userId = token.getUserId(req);
+        const newComment = req.body.comment;
+        const comment = await models.Comment.findOne({ where: { id: req.params.id } });
 
-        comment.update({ comment: newComment})
-        res.status(201).send({ message: "Votre commentaire a été modifié"})
-    })
-    .catch(err => res.status(400).send(err))
+        if (userId == comment.UserId){
+            if(newComment.length < 10){
+                res.status(400).send({ msg: "votre commentaire est trop court"})
+            } else if (newComment.length > 300){
+                res.status(400).send({ msg: "votre commentaire est trop long"})
+            } else {
+                comment.update({ comment: req.body.comment });
+                res.status(200).send({msg: "Votre commentaire à bien été modifié"})
+            }
+        } else {
+            res.status(401).json({ message : "Vous n'êtes pas autorisé à supprimé le commentaire"})
+        }
+    } catch (error) {
+        res.status(500).send(err)
+    }
 
 };
 
 exports.deleteComment = async (req, res, next) => {
     try{
-        const token = req.headers.authorization.split(' ')[1];
-        const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-        const userId = decodedToken.userId;
+        const userId = token.getUserId(req);
         const comment = await models.Comment.findOne({ where: { id: req.params.id } });
 
         if (userId == comment.UserId){
             models.Comment.destroy({ where: { id: req.params.id } });
             res.status(200).send({msg: "Votre commentaire à bien été supprimé"})
         } else {
-            res.status(400).json({ message : "Vous n'êtes pas autorisé à supprimé le commentaire"})
+            res.status(401).json({ message : "Vous n'êtes pas autorisé à supprimé le commentaire"})
         }
     } catch (error) {
         return res.status(500).send({ error: "Erreur serveur" });

@@ -5,25 +5,27 @@
             <div @click="getOnMsg(info.id)" class="msg__container">
                 <img class="msg__container--img" :src="info.imageUrl" alt="">
             </div>
-            <div>
-                <h2 class="msg__title" @click="getOnMsg(info.id)">
-                    {{ info.title }}
-                </h2>
-            </div>
-            <div class="msg__info">
+            <div class="msg__card">
                 <div>
-                    <p>Publié par {{ info.pseudo }}<br/>
-                    le {{ date(info.createdAt) }}</p>
+                    <h2 class="msg__title" @click="getOnMsg(info.id)">
+                        {{ info.title }}
+                    </h2>
                 </div>
-                <div class="msg__interaction">
-                    <p class="msg__interaction--comment">
-                        {{ info.Comments.length }} 
-                        Commentaire<span v-if="info.Comments.length > 1">s</span>
-                    </p>
-                    <p class="msg__interaction--like">
-                        {{ info.Likes.length }} 
-                        like<span v-if="info.Likes.length > 1">s</span>
-                    </p>
+                <div class="msg__info">
+                    <div>
+                        <p>Publié par {{ info.pseudo }}<br/>
+                        le {{ date(info.createdAt) }}</p>
+                    </div>
+                    <div class="msg__interaction">
+                        <p class="msg__interaction--comment">
+                            {{ info.Comments.length }} 
+                            Commentaire<span v-if="info.Comments.length > 1">s</span>
+                        </p>
+                        <p class="msg__interaction--like">
+                            {{ info.Likes.length }} 
+                            like<span v-if="info.Likes.length > 1">s</span>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -45,7 +47,7 @@
                 </label>
         
                 <input v-model="title" class="form__inputText" type="text" name="title"
-                id="title" placeholder="Mon titre" autocomplete="off" required>
+                id="title" placeholder="Mon titre" autocomplete="off">
         
                 <label  for="images" class="form__label">
                     Ajouter une image
@@ -56,7 +58,7 @@
                 image/jpeg,
                 image/bmp,
                 image/gif" ref="file" class="form__inputFile"
-                type="file" name="image" id="images" required>
+                type="file" name="image" id="images">
 
                 <label class="form__label" for="message">
                 Votre message
@@ -64,7 +66,7 @@
 
                 <textarea v-model="message" id="message" class="form__inputTextarea"
                 placeholder="ajoutez plusieurs lignes"
-                rows="10" cols="40" minlength="10" maxlength="400" required>
+                rows="10" cols="40" minlength="10" maxlength="400">
                 </textarea>
                 <button class="form__btn" type="submit">Envoyer</button>
                 </form>
@@ -74,7 +76,7 @@
                 <div class="validMsg" v-if="this.$store.state.successMsg">
                     <p>Votre message a bien été enregistré</p>
                     <i class="validMsg__btn--icon far fa-check-circle fa-7x"></i>
-                    <button v-on:click="backToHome" class="validMsg__btn" type="submit">Retour</button>
+                    <button v-on:click="toggleModale" class="validMsg__btn" type="submit">Retour</button>
                 </div>
             </div>
         </div>
@@ -112,6 +114,8 @@ export default {
                 this.modale = true
             } else {
                 this.modale = false
+                this.refresh()
+                this.$store.state.successMsg = false;
             }
         },
         date(date){
@@ -137,10 +141,6 @@ export default {
         this.message = '';
         this.file = '';
         },
-        backToHome(){
-        this.$store.state.successMsg = false;
-        this.refresh()
-        },
         refresh(){
             axios.get('http://localhost:3000/api/message')
             .then(res => {
@@ -161,7 +161,8 @@ export default {
     border-bottom: 1px solid #d6d6d6;
     text-align: left;
     position: relative;
-
+    border: 1px solid;
+    border-radius: 4px;
     &__title{
         color: #000;
         display: inline-block;
@@ -182,6 +183,13 @@ export default {
             object-fit: cover;
             border-radius: 4px 4px 0 0;
         }
+    }
+    &__card{
+        padding: 1rem;
+        margin: 0.5rem;
+        border: 1px solid #d1d1d1;
+        border-radius: 4px;
+        background: #fff;
     }
     &__info, &__interaction{
         display: flex;

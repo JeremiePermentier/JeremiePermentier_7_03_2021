@@ -1,11 +1,9 @@
 const models = require("../models");
+const token = require("../middleware/token");
 const jwt = require('jsonwebtoken');
 
 exports.likeMessage = (req, res, next) => {
-    // Récupération userId
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
+    const userId = token.getUserId(req);
     const messageId = req.params.id;
     
     models.Like.findOne({
@@ -26,6 +24,6 @@ exports.likeMessage = (req, res, next) => {
         }
     })
     .catch((error) => {
-        return res.status(400).send(error);
+        return res.status(500).send(error);
     })
 };

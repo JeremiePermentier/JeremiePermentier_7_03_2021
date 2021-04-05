@@ -5,7 +5,6 @@
 </template>
 
 <script>
-// import Modale from '@/components/AddMessage.vue'
 import Message from '@/components/GetMessage.vue'
 
   export default {

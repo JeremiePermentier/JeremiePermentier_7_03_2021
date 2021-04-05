@@ -4,11 +4,12 @@
             <div class="msg__container">
                 <img :src="infos.imageUrl" alt="" class="msg__container--img">
             </div>
-            <div>
-                <h2 class="msg__title">{{ infos.title }}</h2>
-                <p class="msg__text">{{ infos.message }}</p>
-            </div>
-            <div class="msg__info">
+            <div class="msg__card">
+                <div>
+                    <h2 class="msg__title">{{ infos.title }}</h2>
+                    <p class="msg__text">{{ infos.message }}</p>
+                </div>
+                <div class="msg__info">
                 <div>
                     <p>Publié par {{ infos.pseudo }}<br/>
                     le {{ date(infos.createdAt) }}</p>
@@ -17,14 +18,17 @@
                     <p class="msg__interaction--comment">{{ countComments() }} <i class="far fa-comment"></i></p>
                     <p class="msg__interaction--like" @click="like()">
                         {{ countLikes() }}
-                        <i v-if="!likeOrNolike()" class="far fa-thumbs-up"></i>
-                        <i v-else-if="likeOrNolike()" class="fas fa-thumbs-up"></i>
+                        <button>
+                            <i v-if="!likeOrNolike()" class="far fa-thumbs-up"></i>
+                            <i v-else-if="likeOrNolike()" class="fas fa-thumbs-up"></i>
+                        </button>
                     </p>
                 </div>
             </div>
-            <div v-if="infos.userId == userId" class="delandupdate">
-                <button @click="deleteMessage()"><i class="fas fa-trash-alt"></i></button>
-                <button @click="updateMessage(infos.comment)"><i class="fas fa-pen"></i></button>
+            </div>
+            <div class="msg__update">
+                <button v-if="infos.userId == userId || this.$store.state.isAdmin == true" @click="deleteMessage()"><i class="fas fa-trash-alt"></i></button>
+                <button v-if="infos.userId == userId || this.$store.state.isAdmin == true" @click="updateMessage(infos.comment)"><i class="fas fa-pen"></i></button>
             </div>
         </div>
         <div class="comment container">
@@ -35,7 +39,7 @@
                 <textarea name="comment" v-model="message" placeholder="Écrire un commentaire..." class="comment__ctrl--textarea" id="comment"
                  cols="50" rows="6" minlength="10" maxlength="300" required></textarea>
                 <div class="comment__ctrl--btn">
-                    <button :disabled="message == false" @click="alert('ok')" class="cancel">Annuler</button>
+                    <!-- <button :disabled="message == false" @click="alert('ok')" class="cancel">Annuler</button> -->
                     <button class="send" >Envoyer</button>    
                 </div> 
             </form>
@@ -75,7 +79,7 @@
         <div v-if="update" class="modale">
             <div class="modale__overlay">
                 <div class="modalInterior">
-                    <button class="modalInterior__btn" v-on:click="updateMessage">
+                    <button class="modalInterior__btn" v-on:click="updateMessage()">
                         <i class="fas fa-times fa-2x"></i>
                     </button>
                     <form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="form" @submit.prevent="sendMsg()"
@@ -286,13 +290,12 @@ import {mapActions} from "vuex";
     margin: 2rem auto;
 }
 
-.getOneMsg{
-    padding: 0 0 4rem 0;
-}
 .msg{
-    border-bottom: 1px solid #d6d6d6;
     text-align: left;
     position: relative;
+    border: 1px solid;
+    border-radius: 4px;
+    box-shadow: 3px 3px 6px grey;
     &__title{
         color: #000;
         display: inline-block;
@@ -307,12 +310,34 @@ import {mapActions} from "vuex";
             border-radius: 4px 4px 0 0;
         }
     }
+    &__card{
+        padding: 1rem;
+        margin: 0.5rem;
+        border: 1px solid #d1d1d1;
+        border-radius: 4px;
+        background: #fff;
+    }
     &__info, &__interaction{
         @include display($dirColumn: inherit);
         justify-content: space-between;
         &--like, &--comment{
             margin: 1rem;
             cursor: pointer;
+        }
+        &--like > button{
+            border: none;
+            background: none;
+        }
+    }
+    &__update{
+        background: #ddd;
+        display: flex;
+        border-radius: 0 0 4px 4px;
+        & > button {
+            background: none;
+            border: none;
+            width: 100%;
+            padding: 0.5rem;
         }
     }
 }
@@ -380,6 +405,7 @@ import {mapActions} from "vuex";
         padding: 0.5rem;
         border: 1.5px solid #d1d1d1;
         border-radius: 4px 4px 0 0;
+        word-break: break-word;
     }
     &__ctrl{
         text-align: right;
@@ -494,20 +520,5 @@ import {mapActions} from "vuex";
     border: none;
     cursor: pointer;
   }
-}
-.delandupdate{
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    border: 2px solid #d1d1d1;
-    border-radius: 0 0 1rem 0;
-    background: #d1d1d1;
-    top: 20vh;
-    left: 28vw;
-    & > button{
-        background: none;
-        border: none;
-        padding: 0.5rem;
-    }
 }
 </style>

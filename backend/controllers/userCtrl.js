@@ -2,10 +2,10 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const token = require("../middleware/token");
 const models = require('../models');
+const fs = require("fs");
 
 
 exports.signup = (req, res, next) => {
-  //params
   let email = req.body.email;
   let pseudo = req.body.pseudo;
   let password = req.body.password;
@@ -62,6 +62,7 @@ exports.login = (req, res, next) => {
           res.status(200).json({
               userId: user.id,
               pseudo: user.pseudo,
+              isAdmin: user.isAdmin,
               token: jwt.sign(
                   {userId: user.id },
                   'RANDOM_TOKEN_SECRET',
@@ -103,27 +104,59 @@ exports.getUser = (req, res, next) => {
     return res.status(500).send({ error: "Erreur du serveur"})
   })
 };
-exports.updateUser = (req, res, next) => {
-  // models.User.findOne({
-  //   where: { id : req.params.id }
-  //   .then(user => {
-  //     if (user.id === req.params.id){
-  //       const userObject = req.file ?
-  //       {
-  //         ...json.parse(req.body),
-  //         avatar: `${req.protocol}://${req.get('host')}/img/${req.file.filename}`,
-  //       } : {...req.body}
-  //     }
-  //   })
-  // })
-  const userObject = req.file ?
-  {
-    ...JSON.parse(req.body.user),
-    imageUrl: `${req.protocol}://${req.get('host')}/img/${req.file.filename}`,
-  } : {...req.body};
-  models.User.save({id:req.params.id}, {...userObject, id: req.params.id})
-  .then(() => res.status(200).json({ message : 'Objet modifié !'}))
-  .catch(error => res.status(400).json({ error }));
+
+exports.getAllUser = async (req, res, next) => {
+  try {
+    const user = await models.User.findAll({
+      attributes: ["id", "pseudo", "email", "isAdmin", "createdAt"],
+    });
+    res.status(200).send(user)
+  } catch (error) {
+    return res.status(500).send(error)
+  }
+}
+
+exports.updateUser = async (req, res, next) => {
+
+  try {
+    const userId = token.getUserId(req);
+    const user = await models.User.findOne(
+      {
+        where: { id: userId},
+        attributes: ["id", "pseudo", "bio", "avatar", "createdAt"],
+      });
+      if(userId === user.id){
+        let avatar;
+        if(req.file){
+          avatar =  `${req.protocol}://${req.get('host')}/img/${req.file.filename}`;
+          if(user.avatar){
+            const filename = user.avatar.split("/img/")[1];
+            fs.unlink(`img/${filename}`, (err) => {
+                if (err) console.log(err);
+                else {
+                    console.log(`Fichier supprimé: img/${filename}`)
+                }
+            });
+          }
+        }
+        if(req.body.bio){
+          user.bio = req.body.bio;
+        }
+        if(req.body.pseudo){
+          user.pseudo = req.body.pseudo;
+        }
+        user.avatar = avatar;
+        const updateUser = await user.save({
+            fields: [ "bio", "pseudo", "avatar"]
+        })
+          res.status(200).send({ message: "Votre messsage à àété modifié" })
+        } else {
+          res.status(401).json({ message: "Vous n'êtes pas autorisé à modifié ce message" })
+        }
+  } catch (error) {
+    res.status(500).send({ error: "Erreur serveur"});
+  }
+
 };
 exports.deleteUser = (req, res) => {
   models.User.findOne({

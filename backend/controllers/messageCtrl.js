@@ -1,130 +1,173 @@
 const models = require("../models");
-const token = require("../middleware/token")
+const token = require("../middleware/token");
 const fs = require("fs");
 const jwt = require('jsonwebtoken');
 
-exports.getAllMessages = (req, res, next) => {    
+exports.getAllMessages = async (req, res, next) => {    
+    try {
+        const msg = await models.Message.findAll({
+            attributes: ["id", "userId", "pseudo", "title", "message", "imageUrl", "createdAt"],
+            order: [["createdAt", "DESC"]],
+            include: [
+                {
+                    model: models.User,
+                    attributes: ["pseudo", "id", "avatar"],
+                },
+                {
+                    model: models.Like,
+                    attributes: ["userId"],
+                },
+                {
+                    model: models.Comment,
+                    attributes: ["id", "userId", "comment", "createdAt"],
+                    include: [
+                        {
+                            model: models.User,
+                            attributes: ["avatar", "pseudo"],
+                        }
+                    ]
+                }
+            ]
+        });
+        res.status(200).send(msg)
+    } catch (error) {
+       return res.status(500).send(error)
+    }
 
-    models.Message.findAll({
-        attributes: ["id", "userId", "pseudo", "title", "message", "imageUrl", "createdAt"],
-        order: [["createdAt", "DESC"]],
-        include: [
+};
+
+exports.getMessage = async (req, res, next) => {
+
+    try {
+        const msg = await models.Message.findOne({
+            where: { id: req.params.id },
+            attributes: ["id", "userId", "pseudo", "title", "message", "imageUrl", "createdAt"],
+            include: [
+                {
+                    model: models.User,
+                    attributes: ["pseudo", "id", "avatar"],
+                },
+                {
+                    model: models.Like,
+                    attributes: ["userId"],
+                },
+                {
+                    model: models.Comment,
+                    attributes: ["id", "userId", "comment", "createdAt"],
+                    include: [
+                        {
+                            model: models.User,
+                            attributes: ["avatar", "pseudo"],
+                        }
+                    ]
+                }
+            ],
+            order: [
+                [ models.Comment, "createdAt", "DESC" ]
+            ]
+        });
+        res.status(200).send(msg)
+    } catch (error) {
+        res.status(500).send(error)
+    }
+};
+
+exports.createMessage = async (req, res, next) => {
+    try {
+        const userId = token.getUserId(req);
+
+        const user = await models.User.findOne({
+            where: { id: userId },
+            attributes: ["id", "pseudo"]
+        });
+        if (userId){
+            const msg = await models.Message.create({
+                title:  req.body.title,
+                message: req.body.message,
+                pseudo: user.pseudo,
+                UserId: user.id,
+                imageUrl: `${req.protocol}://${req.get('host')}/img/${req.file.filename}`
+            })
+            res.status(201).send({ message: "Votre message à été ajouté"})
+        } else {
+            res.status(400).send({ erreur: "Erreur lors de la requête" })
+        }
+    } catch (error) {
+        res.status(500).send({ erreur: "Erreur serveur"})
+    }
+};
+
+
+exports.updateMessage = async (req, res, next) => {
+
+
+    try {
+        const userId = token.getUserId(req);
+        const msg = await models.Message.findOne(
             {
-                model: models.User,
-                attributes: ["pseudo", "id", "avatar"],
-            },
-            {
-                model: models.Like,
-                attributes: ["userId"],
-            },
-            {
-                model: models.Comment,
-                attributes: ["id", "userId", "comment", "createdAt"],
-                include: [
-                    {
-                        model: models.User,
-                        attributes: ["avatar", "pseudo"],
+                where: { id: req.params.id},
+                attributes: ["id", "UserId", "pseudo", "title", "message", "imageUrl", "createdAt"],
+            });
+            
+        if(userId === msg.UserId){
+            let newImg;
+            if(req.file){
+                newImg =  `${req.protocol}://${req.get('host')}/img/${req.file.filename}`;
+                const filename = msg.imageUrl.split("/img/")[1];
+                fs.unlink(`img/${filename}`, (err) => {
+                    if (err) console.log(err);
+                    else {
+                        console.log(`Fichier supprimé: img/${filename}`)
                     }
-                ]
+                });
             }
-        ]
-    })
-    .then(message => res.status(200).send(message))
-    .catch(error => res.status(500).send(error))
-};
-
-exports.getMessage = (req, res, next) => {
-    models.Message.findOne({
-        where: { id: req.params.id },
-        attributes: ["id", "userId", "pseudo", "title", "message", "imageUrl", "createdAt"],
-        include: [
-            {
-                model: models.User,
-                attributes: ["pseudo", "id", "avatar"],
-            },
-            {
-                model: models.Like,
-                attributes: ["userId"],
-            },
-            {
-                model: models.Comment,
-                attributes: ["id", "userId", "comment", "createdAt"],
-                include: [
-                    {
-                        model: models.User,
-                        attributes: ["avatar", "pseudo"],
-                    }
-                ]
+            if(req.body.message){
+                msg.message = req.body.message;
             }
-        ],
-        order: [
-            [ models.Comment, "createdAt", "DESC" ]
-        ]
-    })
-    .then(message => res.status(200).send(message))
-    .catch(error => res.status(500).send(error))
+            if(req.body.title){
+                msg.title = req.body.title;
+            }
+            msg.imageUrl = newImg;
+            const newMsg = await msg.save({
+                fields: [ "title", "message", "imageUrl"]
+            })
+            res.status(200).send({ message: "Votre messsage à àété modifié" })
+        } else {
+            res.status(401).json({ message: "Vous n'êtes pas autorisé à modifié ce message" })
+        }       
+
+    } catch (error) {
+        res.status(500).send({ error: "Erreur serveur"});
+    }
 };
 
-exports.createMessage = (req, res, next) => {
-    const userId = token.getUserId(req);
+exports.deleteMessage =  async (req, res, next) => {
 
-    const title = req.body.title;
-    const message = req.body.message;
-    const pseudo = req.body.pseudo;
-    const image = `${req.protocol}://${req.get('host')}/img/${req.file.filename}`;
+    try {
+        const userId = token.getUserId(req);
+        const ctrlAdmin = await models.User.findOne(
+            {
+                where: {id: userId},
+            }
+        )
+        const message = await models.Message.findOne(
+            {
+                where: {id: req.params.id},
+                attributes: ["id", "UserId", "pseudo", "title", "message", "imageUrl", "createdAt"],
+            });
 
-    models.Message.create({
-        title: title,
-        message: message,
-        UserId: userId,
-        pseudo: pseudo,
-        imageUrl: image
-    })
-    .then(() => res.status(201).send({msg: "Votre message à été crée"}))
-    .catch((error) => res.status(400).send(error))
-};
+        if(userId === message.UserId || ctrlAdmin.isAdmin === true){
+            const filename = message.imageUrl.split("/img/")[1];
+            fs.unlink(`img/${filename}`, () => {
+            models.Message.destroy({ where: { id: req.params.id }});
+            res.status(200).json({ message: "Votre message a été supprimé" });
+            })
+        } else {
+            res.status(401).send("pas autorisé")
+        }
+    } catch (err) {
+        res.status(500).send("erreur serveur")
+        console.log(err)
+    }
 
-
-exports.updateMessage = (req, res, next) => {
-    // const title = req.body.title;
-    // const message = req.body.message;
-    // const image = `${req.protocol}://${req.get('host')}/img/${req.file.filename}`;
-
-    models.Message.findOne({
-        where: {id: req.params.id},
-        attributes: ["id", "userId", "pseudo", "title", "message", "imageUrl", "createdAt"],
-    })
-    .then(msg => {
-
-
-
-
-        let message = req.body.message;
-        let title = req.body.title;
-        let imageUrl = `${req.protocol}://${req.get('host')}/img/${req.file.filename}`;
-        // msg.save({
-        //     fields: ["title", "message", "imageUrl"]
-        // })
-        msg.update({ title: title, message: message, imageUrl: imageUrl })
-        res.status(201).send({ message: "Votre message a été modifié"})
-    })
-    .catch(err => res.status(400).send(err))
-};
-
-exports.deleteMessage = (req, res, next) => {
-
-    models.Message.findOne({
-        where: {id: req.params.id},
-        attributes: ["id", "userId", "pseudo", "title", "message", "imageUrl", "createdAt"],
-    })
-    .then((msg) => {
-        const filename = msg.imageUrl.split("/img/")[1];
-        fs.unlink(`img/${filename}`, () => {
-        models.Message.destroy({ where: { id: req.params.id }});
-        res.status(200).json({ message: "Votre message a été supprimé" });
-        })
-    })
-    .catch((err) => {
-        res.status(400).send(err)
-    })
 };

@@ -8,6 +8,7 @@ export default new Vuex.Store({
   state: {
     token: "",
     status: "",
+    isAdmin: "",
     userId: "",
     pseudo: "",
     message: "",
@@ -24,6 +25,7 @@ export default new Vuex.Store({
       state.token = dataUser.token;
       state.userId = dataUser.userId;
       state.pseudo = dataUser.pseudo;
+      state.isAdmin = dataUser.isAdmin;
     },
     AUTH_CREATE(state){
       state.status = 'userCreate';
@@ -63,6 +65,7 @@ export default new Vuex.Store({
         .then(res => {
           const dataUser = {
             token: `Bearer ` + res.data.token,
+            isAdmin: res.data.isAdmin,
             userId: res.data.userId,
             pseudo: res.data.pseudo
           }

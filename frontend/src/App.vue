@@ -7,6 +7,7 @@
       <router-link class="nav__link" v-if="!hideNav()" to="/signup">Inscription</router-link>
       <router-link class="nav__link" v-if="!hideNav()" to="/login">connexion </router-link>
       <router-link class="nav__link" v-if="hideNav()" to="/user"><i class="fas fa-user"></i></router-link>
+      <router-link class="nav__link" v-if="hideNav() && this.$store.state.isAdmin === true" to="/admin"><i class="fas fa-user-shield"></i></router-link>
     </div>
     </div>
   <router-view/>

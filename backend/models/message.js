@@ -16,19 +16,14 @@ module.exports = (sequelize, DataTypes) => {
           allowNull: false
         }, onDelete:'CASCADE',
       }),
-      models.Message.hasMany(models.Comment, {
-        onDelete:'CASCADE'
-      })
-      models.Message.hasMany(models.Like, {
-        onDelete:'CASCADE'
-      })
+      models.Message.hasMany(models.Comment)
+      models.Message.hasMany(models.Like)
     }
   };
   Message.init({
     title: DataTypes.STRING,
     pseudo: DataTypes.STRING,
     message: DataTypes.STRING,
-    date: DataTypes.DATE,
     imageUrl: DataTypes.STRING
   }, {
     sequelize,
