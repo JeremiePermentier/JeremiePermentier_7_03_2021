@@ -91,7 +91,7 @@ export default {
     name: 'Message',
     data(){
         return{
-            infos: 'this.$store.state.infos',
+            infos: this.$store.state.infos,
             userId: this.$store.state.userId,
             update: false,
             title: '',
@@ -130,16 +130,16 @@ export default {
             this.file = file;
         },
         sendMsg(){
-        this.loading = false;
-        const formData = new FormData();
-        formData.append("image", this.file);
-        formData.append("title", this.title);
-        formData.append("message", this.message);
-        formData.append("pseudo", this.$store.state.pseudo);
-        this.addMessage(formData)
-        this.title = '';
-        this.message = '';
-        this.file = '';
+          this.loading = false;
+          const formData = new FormData();
+          formData.append("image", this.file);
+          formData.append("title", this.title);
+          formData.append("message", this.message);
+          formData.append("pseudo", this.$store.state.pseudo);
+          this.addMessage(formData)
+          this.title = '';
+          this.message = '';
+          this.file = '';
         },
         refresh(){
             axios.get('http://localhost:3000/api/message')

@@ -35,21 +35,26 @@
             <p class="comment__avatar">
                 {{ this.$store.state.pseudo[0] }}
             </p>
-            <form class="comment__ctrl" @submit.prevent="sendComment">
-                <textarea name="comment" v-model="message" placeholder="Écrire un commentaire..." class="comment__ctrl--textarea" id="comment"
+            <form  v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="comment__ctrl" @submit.prevent="addComment">
+                <textarea name="comment" v-model="comment" placeholder="Écrire un commentaire..." class="comment__ctrl--textarea" id="comment"
                  cols="50" rows="6" minlength="10" maxlength="300" required></textarea>
                 <div class="comment__ctrl--btn">
                     <!-- <button :disabled="message == false" @click="alert('ok')" class="cancel">Annuler</button> -->
                     <button class="send" >Envoyer</button>    
                 </div> 
             </form>
+            <div v-else-if="this.$store.state.loading" class="loader"></div>
+            <div class="validComment" v-if="this.$store.state.successMsg">
+                <p>Votre message a bien été enregistré</p>
+                <button v-on:click="backToHome" class="validComment__btn" type="submit">Retour</button>
+            </div>
         </div>
-        <div class="commentUser container" v-for="comment in comments" :key="comment">
+        <div class="commentUser container" v-for="comment in comments" :key="comment.comments">
             <p class="comment__avatar">{{ comment.User.pseudo[0] }}</p>
             <div class="commentUser__container">
                 <p class="commentUser__text">{{ comment.comment }}</p>
                 <div v-if="comment.userId == userId" class="commentUser__ctrl">
-                    <button @click="toggleComment(comment.id)"><i title="Modifier le message" class="fas fa-pen"></i></button>
+                    <button @click="toggleComment(comment.id)"><i title="Modifier le commentaire" class="fas fa-pen"></i></button>
                     <button @click="deleteComment(comment.id)" ><i title="Supprimer le commentaire" class="fas fa-trash-alt"></i></button>
                 </div>
             </div>
@@ -60,7 +65,7 @@
                     <button class="modalInterior__btn" v-on:click="toggleComment">
                         <i class="fas fa-times fa-2x"></i>
                     </button>
-                    <form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="formModal" @submit.prevent="(updateComment())"
+                    <form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="formModal" @submit.prevent="(updateCMT())"
                     enctype="multipart/form-data">
                         
                         <label class="formModal__label" for="message">
@@ -73,6 +78,13 @@
                         </textarea>
                         <button class="formModal__btn" type="submit">Envoyer</button>
                     </form>
+                    <div v-else-if="this.$store.state.loading" class="loader"></div>
+
+                    <div class="validMsg" v-if="this.$store.state.successMsg">
+                        <p>Votre message a bien été enregistré</p>
+                        <i class="validMsg__btn--icon far fa-check-circle fa-7x"></i>
+                        <button v-on:click="backToHome" class="validMsg__btn" type="submit">Retour</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -82,7 +94,7 @@
                     <button class="modalInterior__btn" v-on:click="updateMessage()">
                         <i class="fas fa-times fa-2x"></i>
                     </button>
-                    <form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="form" @submit.prevent="sendMsg()"
+                    <form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="form" @submit.prevent="updateMSG()"
                         enctype="multipart/form-data">
                         <label class="form__label" for="title">Titre</label>
                         <input class="form__inputText" v-model="title" type="text" name="title"
@@ -115,10 +127,10 @@
                     <div v-else-if="this.$store.state.loading" class="loader"></div>
 
                     <div class="validMsg" v-if="this.$store.state.successMsg">
-                    <p>Votre message a bien été enregistré</p>
-                    <i class="validMsg__btn--icon far fa-check-circle fa-7x"></i>
-                    <button v-on:click="backToHome" class="validMsg__btn" type="submit">Retour</button>
-                </div>
+                        <p>Votre message a bien été enregistré</p>
+                        <i class="validMsg__btn--icon far fa-check-circle fa-7x"></i>
+                        <button v-on:click="backToHome" class="validMsg__btn" type="submit">Retour</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -156,7 +168,13 @@ import {mapActions} from "vuex";
         .catch(error => console.log(error))
         },
         methods:{
-            ...mapActions(["addComment", "updateMsg"]),
+            ...mapActions([
+                "addComment", 
+                "updateMsg",
+                "sendComment",
+                "updateComment",
+                "deleteComment"
+                ]),
             toggleComment(id){
                 if(this.modale === true){
                     this.modale = false
@@ -182,6 +200,84 @@ import {mapActions} from "vuex";
             countLikes(){
                 return this.likes.length
             },
+            likeOrNolike(){
+                for (let i = 0 ; i < this.likes.length; i++){
+                    const userIdLike  = this.likes[i].userId
+                    if( userIdLike == this.userId){
+                        return true
+                    }
+                }
+            },
+            addComment(){
+                let data = {
+                    id: this.$route.params.id,
+                    comment: this.comment
+                }
+                this.sendComment(data)
+                this.comment = ""
+                this.refresh()
+            },
+            uploadImage(){
+                const file = this.$refs.file.files[0];
+                this.file = file;
+                console.log(file)
+            },
+            updateMSG(){
+                const formData = new FormData();
+                formData.append("id", this.$route.params.id)
+                formData.append("image", this.file);
+                formData.append("title", this.title);
+                formData.append("message", this.message);
+
+
+                this.updateMsg(formData)
+
+                this.title = '';
+                this.message = '';
+                this.file = '';
+            },
+            backToHome(){
+                this.$store.state.successMsg = false;
+                this.refresh()
+            },
+            updateCMT(){
+
+                let data = {
+                    id: this.idComment,
+                    comment: this.comment
+                }
+                this.updateComment(data)
+                this.comment = ''
+            },
+            deleteComment(id){
+
+
+                axios.delete(`http://localhost:3000/api/comment/${id}`)
+                .then((res) => {
+                    console.log(res)
+                    this.refresh()
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+            },
+            deleteMessage(){
+                axios.delete(`http://localhost:3000/api/message/${this.$route.params.id}`)
+                .then((res) => {
+                    console.log(res)
+                    this.refresh()
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+            },
+            updateMessage(){
+                if(this.update === false){
+                    this.update = true;
+                } else {
+                    this.update = false;
+                }
+            },
             refresh(){
                 axios.get('http://localhost:3000/api/message/' + this.$route.params.id)
                 .then(res => {
@@ -192,91 +288,6 @@ import {mapActions} from "vuex";
                 })
                 .catch(error => console.log(error))
             },
-            likeOrNolike(){
-                for (let i = 0 ; i < this.likes.length; i++){
-                    const userIdLike  = this.likes[i].userId
-                    if( userIdLike == this.userId){
-                        return true
-                    }
-                }
-            },
-            sendComment(){
-                axios({
-                    method: "post",
-                    url: `http://localhost:3000/api/comment/${this.$route.params.id}`,
-                    data: {
-                        comment: this.message
-                    }
-                })
-                .then(res => {
-                    console.log(res);
-                    this.refresh()
-                    this.message = ""
-                })
-                .catch(err => {
-                    console.log(err);
-                })
-            },
-            uploadImage(){
-            const file = this.$refs.file.files[0];
-            this.file = file;
-            console.log(file)
-        },
-            sendMsg(){
-            const formData = new FormData();
-            formData.append("id", this.$route.params.id)
-            formData.append("image", this.file);
-            formData.append("title", this.title);
-            formData.append("message", this.message);
-
-
-            this.updateMsg(formData)
-
-            this.title = '';
-            this.message = '';
-            this.file = '';
-        },
-        backToHome(){
-            this.$store.state.successMsg = false;
-            this.refresh()
-        },
-        updateComment(){
-            axios.put(`http://localhost:3000/api/comment/${this.idComment}`, {comment: this.comment})
-            .then((res) => {
-                console.log(res)
-                this.refresh()
-            })
-            .catch((err) => {
-                console.log(err)
-            })
-        },
-        deleteComment(id){
-            axios.delete(`http://localhost:3000/api/comment/${id}`)
-            .then((res) => {
-                console.log(res)
-                this.refresh()
-            })
-            .catch((err) => {
-                console.log(err)
-            })
-        },
-        deleteMessage(){
-            axios.delete(`http://localhost:3000/api/message/${this.$route.params.id}`)
-            .then((res) => {
-                console.log(res)
-                this.refresh()
-            })
-            .catch((err) => {
-                console.log(err)
-            })
-        },
-        updateMessage(){
-            if(this.update === false){
-                this.update = true;
-            } else {
-                this.update = false;
-            }
-        }
         }
     }
 </script>
@@ -453,7 +464,7 @@ import {mapActions} from "vuex";
 
 .formModal{
   @include display;
-  max-width: 400px;
+  max-width: 100%;
   margin: auto;
   font-size: 1.25rem;
   font-weight: bold;
@@ -496,17 +507,18 @@ import {mapActions} from "vuex";
   }
 }
 .modalInterior{
-  background: #fff;
-  color: #333;
-  width: 320px;
-  height: min-content;
-  padding: 50px;
-  @include position(
-    $top: 30%,
-    $right: inherit,
-    $bottom: inherit,
-    $left: 39%
-  );
+    @include display;
+    background: #fff;
+    color: #333;
+    width: 320px;
+    height: 45vh;
+    padding: 50px;
+    @include position(
+        $top: 30%,
+        $right: inherit,
+        $bottom: inherit,
+        $left: 39%
+    );
   &__btn{
     @include position(
     $position: absolute, 
@@ -519,6 +531,155 @@ import {mapActions} from "vuex";
     background: none;
     border: none;
     cursor: pointer;
+  }
+}
+
+.loader {
+  color: $color-primary;
+  font-size: 90px;
+  text-indent: -9999em;
+  overflow: hidden;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  margin: auto;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-animation: load6 1.7s infinite ease, round 1.7s infinite ease;
+  animation: load6 1.7s infinite ease, round 1.7s infinite ease;
+}
+@-webkit-keyframes load6 {
+  0% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    0 -0.83em 0 -0.42em,
+    0 -0.83em 0 -0.44em,
+    0 -0.83em 0 -0.46em,
+    0 -0.83em 0 -0.477em;
+  }
+  5%,
+  95% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    0 -0.83em 0 -0.42em,
+    0 -0.83em 0 -0.44em,
+    0 -0.83em 0 -0.46em,
+    0 -0.83em 0 -0.477em;
+  }
+  10%,
+  59% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    -0.087em -0.825em 0 -0.42em,
+    -0.173em -0.812em 0 -0.44em,
+    -0.256em -0.789em 0 -0.46em,
+    -0.297em -0.775em 0 -0.477em;
+  }
+  20% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    -0.338em -0.758em 0 -0.42em,
+    -0.555em -0.617em 0 -0.44em,
+    -0.671em -0.488em 0 -0.46em,
+    -0.749em -0.34em 0 -0.477em;
+  }
+  38% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    -0.377em -0.74em 0 -0.42em,
+    -0.645em -0.522em 0 -0.44em,
+    -0.775em -0.297em 0 -0.46em,
+    -0.82em -0.09em 0 -0.477em;
+  }
+  100% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    0 -0.83em 0 -0.42em,
+    0 -0.83em 0 -0.44em,
+    0 -0.83em 0 -0.46em,
+    0 -0.83em 0 -0.477em;
+  }
+}
+@keyframes load6 {
+  0% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    0 -0.83em 0 -0.42em,
+    0 -0.83em 0 -0.44em,
+    0 -0.83em 0 -0.46em,
+    0 -0.83em 0 -0.477em;
+  }
+  5%,
+  95% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    0 -0.83em 0 -0.42em,
+    0 -0.83em 0 -0.44em,
+    0 -0.83em 0 -0.46em,
+    0 -0.83em 0 -0.477em;
+  }
+  10%,
+  59% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    -0.087em -0.825em 0 -0.42em,
+    -0.173em -0.812em 0 -0.44em,
+    -0.256em -0.789em 0 -0.46em,
+    -0.297em -0.775em 0 -0.477em;
+  }
+  20% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    -0.338em -0.758em 0 -0.42em,
+    -0.555em -0.617em 0 -0.44em,
+    -0.671em -0.488em 0 -0.46em,
+    -0.749em -0.34em 0 -0.477em;
+  }
+  38% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    -0.377em -0.74em 0 -0.42em,
+    -0.645em -0.522em 0 -0.44em,
+    -0.775em -0.297em 0 -0.46em,
+    -0.82em -0.09em 0 -0.477em;
+  }
+  100% {
+    box-shadow: 0 -0.83em 0 -0.4em,
+    0 -0.83em 0 -0.42em,
+    0 -0.83em 0 -0.44em,
+    0 -0.83em 0 -0.46em,
+    0 -0.83em 0 -0.477em;
+  }
+}
+@-webkit-keyframes round {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@keyframes round {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+.validMsg{
+  @include display;
+  height: 100%;
+  text-align: center;
+  justify-content: space-around;
+  &__btn{
+    @include btn;
+    &--icon{
+      color: #41b3a3;
+    }
+  }
+}
+.validComment{
+  width: 85%;
+  text-align: center;
+  &__btn{
+    @include btn;
+    width: 10rem;
   }
 }
 </style>

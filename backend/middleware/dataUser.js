@@ -14,7 +14,7 @@ exports.valid = (req, res, next) => {
 
     if (!emailValidator.validate(req.body.email)){
         return res.status(400).send({
-            error: "Vérifier votre addresse email, le mot de passe doit contenir un minimum de 10 caractères avec des minuscules et majuscules et sans mot de passe."
+            error: "Vérifier votre addresse email."
         });
     } else if (!schema.validate(req.body.password)){
         return res.status(400).send({

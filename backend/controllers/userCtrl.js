@@ -10,7 +10,7 @@ exports.signup = (req, res, next) => {
   let pseudo = req.body.pseudo;
   let password = req.body.password;
 
-  if (email == null || pseudo == null || password == null){
+  if (email === null || pseudo === null || password === null){
     return res.status(400).json({ 'error': 'missing parameters'})
   }
 
@@ -44,7 +44,6 @@ exports.signup = (req, res, next) => {
   .catch(function(err){
     return res.status(500).json({ 'error': 'unable to verify user'});
   });
-
 };
 exports.login = (req, res, next) => {
   models.User.findOne({
@@ -75,34 +74,40 @@ exports.login = (req, res, next) => {
   .catch(error => res.status(500).json({ error}));
 };
 
-exports.getUser = (req, res, next) => {
-  models.User.findOne({
-    where: { id : req.params.id },
-    include: [
+exports.getUser = async (req, res, next) => {
+
+  try {
+    const userId = token.getUserId(req);
+    const ctrlAdmin = await models.User.findOne(
       {
-        model: models.Message,
-        attributes: ["id", "title", "message", "createdAt"],
-      },
-      {
-        model: models.Comment,
-        attributes: ["id" ,"comment", "createdAt"],
+          where: {id: userId},
       }
-    ],
-    order: [
-      [ models.Comment, "createdAt", "DESC" ],
-      [ models.Message, "createdAt", "DESC" ]
-  ]
-  })
-  .then(user => {
-    if (!user){
-      return res.status(401).json({ error: 'Utilisateur non trouvé !'})
-    } else {
+    )
+    const user = await models.User.findOne({
+      where: { id : req.params.id },
+      include: [
+        {
+          model: models.Message,
+          attributes: ["id", "title", "message", "createdAt"],
+        },
+        {
+          model: models.Comment,
+          attributes: ["id" ,"comment", "createdAt"],
+        }
+      ],
+      order: [
+        [ models.Comment, "createdAt", "DESC" ],
+        [ models.Message, "createdAt", "DESC" ]
+      ]
+    });
+    if(userId === user.id || ctrlAdmin.isAdmin === true){
       res.status(200).send(user);
+    } else {
+      res.status(401).send({ error: "Vous n'êtes pas autorisé"})
     }
-  })
-  .catch(error => {
-    return res.status(500).send({ error: "Erreur du serveur"})
-  })
+  } catch (error) {
+    res.status(500).send({ error: "Erreur du serveur"})
+  }
 };
 
 exports.getAllUser = async (req, res, next) => {
@@ -158,23 +163,34 @@ exports.updateUser = async (req, res, next) => {
   }
 
 };
-exports.deleteUser = (req, res) => {
-  models.User.findOne({
-    where: { id: req.params.id}
-  })
-  .then(user => {
-    if(user.avatar !== null){
-      const filename = user.avatar.split('/img/')[1];
-      fs.unlink(`img/${filename}`, () => {
-      models.User.destroy({ where: { id: req.params.id } });
-      res.status(200).json({ msg: "Utilisateur supprimé" });
+exports.deleteUser = async (req, res) => {
+  try {
+    const userId = token.getUserId(req);
+    const ctrlAdmin = await models.User.findOne(
+      {
+          where: {id: userId},
+      }
+    )
+    const user = await models.User.findOne(
+      {
+        where: { id: req.params.id},
+        attributes: ["id", "pseudo", "bio", "avatar", "createdAt"],
       });
-    } else {
-      models.User.destroy({ where: { id: req.params.id } });
-      res.status(200).json({ msg: "Utilisateur supprimé" });
-    }
-  })
-  .catch(error => {
-    return res.status(500).send({ error: "Erreur serveur"});
-  })
+      if(userId === user.id || ctrlAdmin.isAdmin === true){
+        if(user.avatar !== null){
+              const filename = user.avatar.split('/img/')[1];
+              fs.unlink(`img/${filename}`, () => {
+              models.User.destroy({ where: { id: req.params.id } });
+              res.status(200).json({ msg: "Utilisateur supprimé" });
+              });
+            } else {
+              models.User.destroy({ where: { id: req.params.id } });
+              res.status(200).json({ msg: "Utilisateur supprimé" });
+            }
+      } else {
+        res.status(401).json({ message: "Vous n'êtes pas autorisé à supprimé cette utilisateur" })
+      }
+  } catch (error) {
+    res.status(500).send({ error: "Erreur serveur"});
+  }
 };

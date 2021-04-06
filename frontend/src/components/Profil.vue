@@ -28,6 +28,7 @@
 
                     <input class="form__btn" type="submit" value="Sauvegarder les changements">
                 </form>
+                <button class="profil__btnDel" @click="deleteProfil()">Supprimer mon profil</button>
             </div>
         </div>
         <div class="dashboard__container">
@@ -56,6 +57,15 @@ import axios from 'axios';
                 this.$store.dispatch('logout')
                 .then(() => {
                     this.$router.push('/login')
+                })
+            },
+            deleteProfil(){
+                axios.delete(`http://localhost:3000/api/users/profil/${this.userId}`)
+                .then(() => {
+                    this.logout()
+                })
+                .catch(err => {
+                    console.error(err)
                 })
             },
             seeInfo(info){
@@ -138,7 +148,11 @@ import axios from 'axios';
         text-align: center;
         margin: auto;
         &--button{
-         @include btn($border-radius: 0);
+         @include btn(
+            $border-radius: 0,
+            $background: $color-secondary,
+            $border: $color-secondary
+            );
          width: 10rem;
         }
     }
@@ -189,11 +203,13 @@ import axios from 'axios';
     margin: 1rem auto;
     width: 300px;
     height: 500px;
-    // & > form{
-    //     @include display;
-    //     height: 94%;
-    //     justify-content: center;
-    // }
+    &__btnDel{
+        @include btn(
+            $background: $color-secondary,
+            $border: $color-secondary
+            );
+        width: 100%
+    }
 }
 
 

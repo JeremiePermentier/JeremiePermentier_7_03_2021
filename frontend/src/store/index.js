@@ -40,22 +40,22 @@ export default new Vuex.Store({
     GET_ALL_MESSAGE(state, res){
       state.infos = res.data;
     },
-    AUTH_REQUEST_MSG(state){
+    AUTH_REQUEST_LOADING(state){
       state.loading = true;
     },
-    AUTH_SUCCESS_MSG(state){
+    AUTH_IS_SUCCESS(state){
       state.loading = false;
       state.successMsg = true;
     },
-    AUTH_REQUEST_DELETE(state){
-      state.loading = true;
-    },
-    AUTH_SUCCESS_DELETE(state){
-      state.loading = false;
-    },
-    GET_ONE_MESSAGE(state, message){
-      state.message = message;
-    }
+    // AUTH_REQUEST_DELETE(state){
+    //   state.loading = true;
+    // },
+    // AUTH_SUCCESS_DELETE(state){
+    //   state.loading = false;
+    // },
+    // GET_ONE_MESSAGE(state, message){
+    //   state.message = message;
+    // }
   },
   actions: {
     submitLogin({ commit }, user){
@@ -72,7 +72,6 @@ export default new Vuex.Store({
           axios.defaults.headers.common['Authorization'] = dataUser.token
           commit('AUTH_SUCCESS', dataUser)
           resolve(res)
-          console.log(res)
         })
         .catch(err => {
           commit('AUTH_ERROR')
@@ -111,7 +110,7 @@ export default new Vuex.Store({
         .catch(error => console.log(error))
     },
     addMessage({commit}, data){
-      commit('AUTH_REQUEST_MSG');
+      commit('AUTH_REQUEST_LOADING');
       axios({
         method: "post",
         url: "http://localhost:3000/api/message/add",
@@ -119,15 +118,15 @@ export default new Vuex.Store({
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then(() => {
-        commit('AUTH_SUCCESS_MSG');
+        commit('AUTH_IS_SUCCESS');
       })
       .catch(err => {
         console.log(err);
-        commit('AUTH_ERROR_MSG');
+        commit('AUTH_ERROR');
       })
     },
     updateMsg({commit}, data){
-      commit('AUTH_REQUEST_MSG');
+      commit('AUTH_REQUEST_LOADING');
       axios({
         method: "put",
         url: `http://localhost:3000/api/message/${data.get("id")}`,
@@ -135,10 +134,43 @@ export default new Vuex.Store({
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then(() => {
-        commit('AUTH_SUCCESS_MSG');
+        commit('AUTH_IS_SUCCESS');
       })
       .catch(() => {
-        commit('AUTH_ERROR_MSG');
+        commit('AUTH_ERROR');
+      })
+    },
+    sendComment({commit}, data){
+      commit('AUTH_REQUEST_LOADING');
+      axios({
+        method: "post",
+        url: `http://localhost:3000/api/comment/${data.id}`,
+        data: data,
+        })
+        .then(res => {
+            console.log(res);
+            commit('AUTH_IS_SUCCESS');
+        })
+        .catch(err => {
+            console.log(err);
+            commit('AUTH_ERROR');
+        })
+    },
+    updateComment({commit}, data){
+      commit('AUTH_REQUEST_LOADING');
+      axios({
+      method: "put",
+      url: `http://localhost:3000/api/comment/${data.id}`,
+      data: data,
+      })
+      .then(res => {
+          console.log(res);
+          commit('AUTH_IS_SUCCESS');
+      })
+      .catch(err => {
+        
+          console.log(err);
+          commit('AUTH_ERROR');
       })
     }
   }
