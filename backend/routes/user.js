@@ -7,6 +7,7 @@ const multer = require("../middleware/multer-config");
 router.post("/signup", dataUser.valid ,userCtrl.signup);
 router.post("/login", userCtrl.login);
 router.get("/profil/:id", auth, userCtrl.getUser);
+router.get("/profil", auth, userCtrl.getAllUser);
 router.put("/profil/:id", auth, multer, userCtrl.updateUser);
 router.delete("/profil/:id", auth, userCtrl.deleteUser);
 

@@ -92,7 +92,7 @@ exports.getUser = async (req, res, next) => {
         },
         {
           model: models.Comment,
-          attributes: ["id" ,"comment", "createdAt"],
+          attributes: ["id", "pseudo" ,"comment", "createdAt"],
         }
       ],
       order: [
@@ -103,7 +103,7 @@ exports.getUser = async (req, res, next) => {
     if(userId === user.id || ctrlAdmin.isAdmin === true){
       res.status(200).send(user);
     } else {
-      res.status(401).send({ error: "Vous n'êtes pas autorisé"})
+      res.status(401).send({ error: "Vous n'êtes pas autorisé"});
     }
   } catch (error) {
     res.status(500).send({ error: "Erreur du serveur"})
@@ -112,10 +112,30 @@ exports.getUser = async (req, res, next) => {
 
 exports.getAllUser = async (req, res, next) => {
   try {
-    const user = await models.User.findAll({
-      attributes: ["id", "pseudo", "email", "isAdmin", "createdAt"],
-    });
-    res.status(200).send(user)
+    const userId = token.getUserId(req);
+    const ctrlAdmin = await models.User.findOne({where: {id: userId}})
+    if (ctrlAdmin.isAdmin === true){
+      const user = await models.User.findAll({
+        attributes: ["id", "pseudo", "email", "isAdmin", "createdAt"],
+        include: [
+          {
+            model: models.Message,
+            attributes: ["id", "title", "message", "createdAt"],
+          },
+          {
+            model: models.Comment,
+            attributes: ["id",  "pseudo" ,"comment", "createdAt"],
+          }
+        ],
+        order: [
+          [ models.Comment, "createdAt", "DESC" ],
+          [ models.Message, "createdAt", "DESC" ]
+        ]
+      });
+      res.status(200).send(user)
+    } else {
+      res.status(401).send({ error: "Vous n'êtes pas autorisé"});
+    }
   } catch (error) {
     return res.status(500).send(error)
   }
@@ -165,7 +185,7 @@ exports.updateUser = async (req, res, next) => {
 };
 exports.deleteUser = async (req, res) => {
   try {
-    const userId = token.getUserId(req);
+    const userId = await token.getUserId(req);
     const ctrlAdmin = await models.User.findOne(
       {
           where: {id: userId},

@@ -27,6 +27,25 @@ exports.addComment = async (req, res, next) => {
     }
 };
 
+exports.getAllComments = async (req, res, next) => {
+    try {
+        const userId = token.getUserId(req);
+        const user = await models.User.findOne({ where: { id: userId } });
+
+        if (user.isAdmin ===  true){
+            const comments = await models.Comment.findAll({ 
+                attributes: ["id", "pseudo", "comment"]
+            })
+            res.status(200).send(comments)
+        } else {
+            res.status(401).send({ message: "Vous n'êtes pas autorisé"})
+        }
+
+    } catch (error) {
+        res.status(500).send(error)
+    }
+};
+
 exports.updateComment = async (req, res, next) => {
     try {
         const userId = token.getUserId(req);
@@ -55,8 +74,9 @@ exports.deleteComment = async (req, res, next) => {
     try{
         const userId = token.getUserId(req);
         const comment = await models.Comment.findOne({ where: { id: req.params.id } });
+        const user = await models.User.findOne({ where: { id: userId } });
 
-        if (userId == comment.UserId){
+        if (userId === comment.UserId || user.isAdmin === true){
             models.Comment.destroy({ where: { id: req.params.id } });
             res.status(200).send({msg: "Votre commentaire à bien été supprimé"})
         } else {
