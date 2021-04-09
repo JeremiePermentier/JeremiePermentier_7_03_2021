@@ -312,7 +312,7 @@ import {mapActions} from "vuex";
         display: inline-block;
     }
     &__container{
-        height: 300px;
+        height: 35vh;
         &--img{
             max-width: 100%;
             width: max-content;
@@ -352,6 +352,7 @@ import {mapActions} from "vuex";
         }
     }
 }
+
 .comment{
     @include display($dirColumn: inherit);
     justify-content: space-between;
@@ -681,5 +682,28 @@ import {mapActions} from "vuex";
     @include btn;
     width: 10rem;
   }
+}
+
+@media screen and (max-width: 800px) {
+    .msg{
+        width: 95vw;
+    }
+    .comment{
+        margin: 0.5rem;
+        &__avatar{
+        width: 2rem;
+        height: 2rem;
+        margin: 0 5px 0 0 ;
+        }
+        &__ctrl{
+            width: 85%;
+        }
+    }
+    .commentUser{
+        margin: 0.5rem;
+        &__ctrl{
+            margin: 0 0 1rem 0;
+        }
+    }
 }
 </style>

@@ -1,9 +1,9 @@
 <template>
     <div class="container">
         <div class="ctrl">
-            <button @click="seeAllUsers()">Utilisateurs</button>
-            <button @click="seeAllMessages()">Messages</button>
-            <button  @click="seeAllComments()">commentaires</button>
+            <button :class="{active: users}" class="ctrl__btn" @click="seeAllUsers()">Utilisateurs</button>
+            <button :class="{active: messages}" class="ctrl__btn" @click="seeAllMessages()">Messages</button>
+            <button :class="{active: comments}" class="ctrl__btn"  @click="seeAllComments()">commentaires</button>
         </div>
         <table v-if="users" class="tableUsers">
             <thead>
@@ -67,7 +67,6 @@
                 </tr>
             </tbody>
         </table>
-        <!-- <p>{{ infos }}</p> -->
     </div>
 </template>
 
@@ -86,7 +85,7 @@ import axios from 'axios';
         },
         methods:{
             seeUser(id){
-            this.$router.push(`admin/${id}`)
+                this.$router.push(`admin/${id}`)
             },
             seeAllUsers(){
                 axios.get('http://localhost:3000/api/users/profil')
@@ -166,6 +165,7 @@ import axios from 'axios';
 
 <style lang="scss" scoped>
 @import "../assets/utils/_variables.scss";
+@import "../assets/utils/_mixins.scss";
 
 .container{
     margin:  5rem auto;
@@ -173,8 +173,13 @@ import axios from 'axios';
 .ctrl{
     margin: 1rem auto;
     width: fit-content;
+    &__btn{
+        @include btn($border-radius: 0px, $background: grey, $border: grey);
+    }
 }
-
+.active{
+            @include btn($border-radius: 0px, $background: $color-primary, $border: $color-primary);
+        }
 table, td, th{
     margin: auto;
     border: 1px solid $color-primary;

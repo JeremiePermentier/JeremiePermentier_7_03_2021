@@ -174,7 +174,6 @@ export default {
         }
     }
     &__container{
-        height: 300px;
         cursor: pointer;
         &--img{
             max-width: 100%;
@@ -199,7 +198,12 @@ export default {
         }
     }
 }
-
+@media screen and (max-width: 800px) {
+  .msg__info{
+    display: flex;
+    flex-direction: column;
+  }
+}
 .modale{
   @include display($dirColumn: inherit);
   justify-content: center;

@@ -85,6 +85,11 @@ body{
   max-width: 35rem;
   height: 3rem;
 }
+@media screen and (max-width: 800px) {
+  .containerMsg{
+    max-width: 330px;
+  }
+}
 .btnMsg{
   cursor: pointer;
   width: 100%;
