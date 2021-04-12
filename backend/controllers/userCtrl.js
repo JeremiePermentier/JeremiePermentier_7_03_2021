@@ -20,7 +20,7 @@ exports.signup = (req, res, next) => {
   })
   .then(function(userFound){
     if(!userFound){
-      bcrypt.hash(password, 5, function(err, bcryptedPassword){
+      bcrypt.hash(password, 10, function(err, bcryptedPassword){
         let newUser = models.User.create({
           email: email,
           pseudo: pseudo,

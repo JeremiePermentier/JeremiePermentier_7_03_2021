@@ -1,20 +1,3 @@
-const bcrypt = require('bcrypt');
-const saltRounds = 10;
-let password = "admin";
-
-function createPassword(){
-  bcrypt.hash(password, 10, function(err, hash){
-    return hash
-  })
-
-  // bcrypt.genSalt(saltRounds, function(err, salt){
-  //   bcrypt.hash("admin", salt, function(err, hash){
-  //     console.log(hash)
-  //     return hash
-  //   });
-  // });
-}
-
 'use strict';
 
 module.exports = {
@@ -22,7 +5,7 @@ module.exports = {
     return queryInterface.bulkInsert('Users', [{
       pseudo: 'Admin',
       email: 'admin@admin.fr',
-      password: createPassword(),
+      password: '$2b$10$85/1vv4ABTL.gdV9Cs9nuuh24eYiWyAZthn8fPbxmGUPpr3bnGwKe',
       isAdmin: '1',
       createdAt: new Date(),
       updatedAt: new Date()
