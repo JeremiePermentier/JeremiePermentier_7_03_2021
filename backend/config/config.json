@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "root",
+    "password": "simplon",
+    "database": "database_development_groupomania",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "test": {
+    "username": "root",
+    "password": "simplon",
+    "database": "database_development_test",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "root",
+    "password": "simplon",
+    "database": "database_development_production",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}
