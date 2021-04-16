@@ -80,17 +80,23 @@ exports.createMessage = async (req, res, next) => {
             where: { id: userId },
             attributes: ["id", "pseudo"]
         });
-        if (userId){
-            const msg = await models.Message.create({
-                title:  req.body.title,
-                message: req.body.message,
-                pseudo: user.pseudo,
-                UserId: user.id,
-                imageUrl: `${req.protocol}://${req.get('host')}/img/${req.file.filename}`
-            })
-            res.status(201).send({ message: "Votre message à été ajouté"})
+        if(req.body.title.length > 25 || req.body.message.length > 400){
+            res.status(400).send({ erreur: "Votre message ne respecte pas le format autorisé !"});
+        } else if (req.body.title.length < 3 || req.body.message.length < 10){
+            res.status(400).send({ erreur: "Votre message ne respecte pas le format autorisé !"});
         } else {
-            res.status(400).send({ erreur: "Erreur lors de la requête" })
+            if (userId){
+                const msg = await models.Message.create({
+                    title:  req.body.title,
+                    message: req.body.message,
+                    pseudo: user.pseudo,
+                    UserId: user.id,
+                    imageUrl: `${req.protocol}://${req.get('host')}/img/${req.file.filename}`
+                })
+                res.status(201).send({ message: "Votre message à été ajouté"})
+            } else {
+                res.status(400).send({ erreur: "Erreur lors de la requête" })
+            }
         }
     } catch (error) {
         res.status(500).send({ erreur: "Erreur serveur"})
@@ -121,17 +127,27 @@ exports.updateMessage = async (req, res, next) => {
                     }
                 });
             }
+
+            
             if(req.body.message){
-                msg.message = req.body.message;
+                if(req.body.message.length > 400 || req.body.message.length < 10){
+                    res.status(400).send({ erreur: "Votre message ne respecte pas le format autorisé !"})
+                } else {
+                    msg.message = req.body.message;
+                }
             }
             if(req.body.title){
-                msg.title = req.body.title;
+                if(req.body.title.length > 25 || req.body.title.length < 3){
+                    res.status(400).send({ erreur: "Votre message ne respecte pas le format autorisé !"})
+                } else {
+                    msg.title = req.body.title;
+                }
             }
             msg.imageUrl = newImg;
             const newMsg = await msg.save({
                 fields: [ "title", "message", "imageUrl"]
             })
-            res.status(200).send({ message: "Votre messsage à àété modifié" })
+            res.status(200).send({ message: "Votre messsage à été modifié" })
         } else {
             res.status(401).json({ message: "Vous n'êtes pas autorisé à modifié ce message" })
         }       

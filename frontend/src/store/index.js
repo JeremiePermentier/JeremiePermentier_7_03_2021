@@ -26,12 +26,15 @@ export default new Vuex.Store({
       state.userId = dataUser.userId;
       state.pseudo = dataUser.pseudo;
       state.isAdmin = dataUser.isAdmin;
+      state.loading = false;
     },
     AUTH_CREATE(state){
+      state.loading = false;
       state.status = 'userCreate';
     },
-    AUTH_ERROR(state){
-      state.status = 'error';
+    AUTH_ERROR(state, err){
+      state.loading = false;
+      state.status = err.message;
     },
     LOGOUT(state){
       state.status = '';
@@ -60,7 +63,7 @@ export default new Vuex.Store({
   actions: {
     submitLogin({ commit }, user){
       return new Promise((resolve, reject) => {
-        commit('AUTH_REQUEST')
+        commit('AUTH_REQUEST_LOADING')
         axios({url: 'http://localhost:3000/api/users/login', data: user, method: 'POST'})
         .then(res => {
           const dataUser = {
@@ -82,7 +85,7 @@ export default new Vuex.Store({
     },
     registerUser({ commit }, user){
       return new Promise((resolve, reject) => {
-        commit('AUTH_REQUEST')
+        commit('AUTH_REQUEST_LOADING')
         axios({url: 'http://localhost:3000/api/users/signup', data: user, method: 'POST'})
         .then(res => {
           this.user = res.data.user

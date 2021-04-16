@@ -1,86 +1,63 @@
 <template>
-    <div>
-        <button  class="btnMsg" v-on:click="toggleModale">+</button>
-        <div class="msg"  v-for="info in infos" :key="info.message">
-            <div @click="getOnMsg(info.id)" class="msg__container">
-                <img class="msg__container--img" :src="info.imageUrl" alt="">
-            </div>
-            <div class="msg__card">
-                <div>
-                    <h2 class="msg__title" @click="getOnMsg(info.id)">
-                        {{ info.title }}
-                    </h2>
-                </div>
-                <div class="msg__info">
-                    <div>
-                        <p>Publié par {{ info.pseudo }}<br/>
-                        le {{ date(info.createdAt) }}</p>
-                    </div>
-                    <div class="msg__interaction">
-                        <p class="msg__interaction--comment">
-                            {{ info.Comments.length }} 
-                            Commentaire<span v-if="info.Comments.length > 1">s</span>
-                        </p>
-                        <p class="msg__interaction--like">
-                            {{ info.Likes.length }} 
-                            like<span v-if="info.Likes.length > 1">s</span>
-                        </p>
-                    </div>
-                </div>
-            </div>
+<div>
+	<button  class="btnMsg" v-on:click="toggleModale">+</button>
+
+  <div v-for="info in infos" :key="info.message">
+    <div class="msg">
+      <div @click="getOnMsg(info.id)" class="msg__container">
+          <img class="msg__container--img" :src="info.imageUrl" alt="">
+      </div>
+      <div class="msg__card">
+        <div class="msg__title">
+          <h2 class="msg__title" @click="getOnMsg(info.id)">{{ info.title }}</h2>
         </div>
-
-        <div v-if="modale" class="modale">
-            <div class="modale__overlay" v-on:click="toggleModale">
-
-            </div>
-            <div class="modalInterior">
-                <button class="modalInterior__btn" v-on:click="toggleModale">
-                    <i class="fas fa-times fa-2x"></i>
-                </button>
-      
-                <form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="form" @submit.prevent="sendMsg"
-                enctype="multipart/form-data">
-        
-                <label class="form__label" for="title">
-                    Titre
-                </label>
-        
-                <input v-model="title" class="form__inputText" type="text" name="title"
-                id="title" placeholder="Mon titre" autocomplete="off">
-        
-                <label  for="images" class="form__label">
-                    Ajouter une image
-                </label>
-        
-                <input @change="uploadImage"
-                accept="image/png,
-                image/jpeg,
-                image/bmp,
-                image/gif" ref="file" class="form__inputFile"
-                type="file" name="image" id="images">
-
-                <label class="form__label" for="message">
-                Votre message
-                </label>
-
-                <textarea v-model="message" id="message" class="form__inputTextarea"
-                placeholder="ajoutez plusieurs lignes"
-                rows="10" cols="40" minlength="10" maxlength="400">
-                </textarea>
-                <button class="form__btn" type="submit">Envoyer</button>
-                </form>
-      
-                <div v-else-if="this.$store.state.loading" class="loader"></div>
-
-                <div class="validMsg" v-if="this.$store.state.successMsg">
-                    <p>Votre message a bien été enregistré</p>
-                    <i class="validMsg__btn--icon far fa-check-circle fa-7x"></i>
-                    <button v-on:click="toggleModale" class="validMsg__btn" type="submit">Retour</button>
-                </div>
-            </div>
+        <div class="msg__info">
+          <div>
+            <p>
+              Publié par {{info.pseudo}}
+              <br/>
+              le {{date(info.createdAt)}}
+            </p>
+          </div>
+          <div class="msg__interaction">
+            <p class="msg__interaction--comment">
+              {{ info.Comments.length }} Commentaire
+              <span v-if="info.Comments.length > 1">s</span>
+            </p>
+            <p class="msg__interaction--like">
+              {{ info.Likes.length }} Like
+              <span v-if="info.Likes.length > 1">s</span>
+            </p>
+          </div>
         </div>
+      </div>
     </div>
+    <hr>
+  </div>
+	<div v-if="modale" class="modale">
+		<div class="modale__overlay" v-on:click="toggleModale"></div>
+		<div class="modalInterior">
+			<button class="modalInterior__btn" v-on:click="toggleModale"><i class="fas fa-times fa-2x"></i></button>
+			<form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="form" @submit.prevent="sendMsg" enctype="multipart/form-data">
+				<label class="form__label" for="title">Titre</label>
+				<input v-model="title" class="form__inputText" type="text" name="title" id="title" placeholder="Mon titre" autocomplete="off" minlength="3" maxlength="25">
+				<label  for="images" class="form__label">Ajouter une image</label>
+				<input @change="uploadImage" accept="image/png,image/jpeg,image/bmp" ref="file" class="form__inputFile" type="file" name="image" id="images">
+				<label class="form__label" for="message">Votre message</label>
+				<textarea v-model="message" id="message" class="form__inputTextarea" placeholder="ajoutez plusieurs lignes" rows="10" cols="40" minlength="10" maxlength="400"></textarea>
+				<button class="form__btn" type="submit">Envoyer</button>
+			</form>
+			<div v-else-if="this.$store.state.loading" class="loader"></div>
+			<div class="validMsg" v-if="this.$store.state.successMsg">
+				<p>
+					Votre message a bien été enregistré
+				</p>
+				<i class="validMsg__btn--icon far fa-check-circle fa-7x"></i>
+				<button v-on:click="toggleModale" class="validMsg__btn" type="submit">Retour</button>
+			</div>
+		</div>
+	</div>
+</div>
 </template>
 
 <script>
@@ -158,11 +135,12 @@ export default {
 
 .msg{
     margin: 2rem 0;
-    border-bottom: 1px solid #d6d6d6;
+    border-bottom: 1px solid $color-text;
     text-align: left;
     position: relative;
     border: 1px solid;
     border-radius: 4px;
+    box-shadow: 3px 3px 6px $color-text;
     &__title{
         color: #000;
         display: inline-block;
@@ -179,6 +157,7 @@ export default {
             max-width: 100%;
             width: max-content;
             max-height: 100%;
+            height: 30vh;
             object-fit: cover;
             border-radius: 4px 4px 0 0;
         }
@@ -198,24 +177,19 @@ export default {
         }
     }
 }
-@media screen and (max-width: 800px) {
-  .msg__info{
-    display: flex;
-    flex-direction: column;
-  }
-}
+
 .modale{
   @include display($dirColumn: inherit);
   justify-content: center;
   align-items: center;
   &__overlay{
-    background: rgba($color: #000000, $alpha: 0.5);
+    background: rgba($color: $color-text, $alpha: 0.5);
     @include position;
   }
 }
 .modalInterior{
-  background: #fff;
-  color: #333;
+  background: $color-clear;
+  color: $color-text;
   width: 320px;
   height: 425px;
   padding: 50px;
@@ -247,7 +221,7 @@ export default {
   font-weight: bold;
   & ::placeholder{
     font-weight: bold;
-    color: #000;
+    color: $color-text;
     text-indent: 0.5rem;
   }
   &__label{
@@ -415,8 +389,19 @@ export default {
   &__btn{
     @include btn;
     &--icon{
-      color: #41b3a3;
+      color: $color-success;
     }
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .msg__info{
+    display: flex;
+    flex-direction: column;
+  }
+  .modalInterior{
+    width: 250px;
+    top: 15%;
   }
 }
 

@@ -39,6 +39,7 @@ body{
   height: 100%;
   margin: 0;
   padding: 0;
+  background: $color-clear;
 }
 
 #app {
@@ -50,7 +51,7 @@ body{
   margin: auto 0;
   &__link{
     font-weight: bold;
-    color: #fff;
+    color: $color-clear;
     text-decoration: none;
     padding: 0 0.5rem;
     &.router-link-exact-active {

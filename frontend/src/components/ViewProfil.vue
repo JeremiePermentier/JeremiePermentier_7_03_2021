@@ -60,14 +60,14 @@ import axios from 'axios';
 .card{
     border: 1px solid #d1d1d1;
     padding: 1rem;
-    width: 30vw;
-    height: 35vh;
+    width: 300px;
+    height: 400px;
     text-align: center;
     border-radius: 5px;
     &__avatar{
-        width: 10vw;
+        width: 50%;
+        height: 35%;
         vertical-align: middle;
-        height: 10vh;
         object-fit: cover;
         border-radius: 50%;
     }
@@ -77,6 +77,11 @@ import axios from 'axios';
             font-weight: bold;
             line-height: 2rem;
         }
+    }
+}
+@media screen and (max-width: 800px) {
+    .container{
+        max-width: 350px;
     }
 }
 </style>

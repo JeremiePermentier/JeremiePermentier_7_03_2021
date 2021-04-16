@@ -5,32 +5,34 @@
             <button :class="{active: messages}" class="ctrl__btn" @click="seeAllMessages()">Messages</button>
             <button :class="{active: comments}" class="ctrl__btn"  @click="seeAllComments()">commentaires</button>
         </div>
-        <table v-if="users" class="tableUsers">
-            <thead>
-                <tr>
-                    <th scope="col">Id</th>
-                    <th scope="col">Pseudo</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Rôle</th>
-                    <th scope="col">Message</th>
-                    <th scope="col">Commentaire</th>
-                    <th scope="col">Voir le profil</th>
-                    <th scope="col">Supprimer</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="info in infos" :key="info.data">
-                    <th>{{ info.id }}</th>
-                    <td>{{ info.pseudo }}</td>
-                    <td>{{ info.email }}</td>
-                    <td>{{ role(info.isAdmin) }}</td>
-                    <td>{{ info.Messages.length }}</td>
-                    <td>{{ info.Comments.length }}</td>
-                    <td><i @click="seeUser(info.id)" title="voir le profil" class="far fa-eye"></i></td>
-                    <td><i @click="deleteUser(info.id)" title="Supprimer ce profil" class="fas fa-trash-alt"></i></td>
-                </tr>
-            </tbody>
+        <div class="table__container">
+            <table v-if="users" class="tableUsers">
+                <thead>
+                    <tr>
+                        <th data-label="Id" scope="col">Id</th>
+                        <th data-label="Pseudo" scope="col">Pseudo</th>
+                        <th data-label="Email" scope="col">Email</th>
+                        <th data-label="Rôle" scope="col">Rôle</th>
+                        <th data-label="Message" scope="col">Message</th>
+                        <th data-label="Commentaire" scope="col">Commentaire</th>
+                        <th data-label="Voir le profil" scope="col">Voir le profil</th>
+                        <th data-label="Supprimer" scope="col">Supprimer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="info in infos" :key="info.data">
+                        <td>{{ info.id }}</td>
+                        <td>{{ info.pseudo }}</td>
+                        <td>{{ info.email }}</td>
+                        <td>{{ role(info.isAdmin) }}</td>
+                        <td>{{ info.Messages.length }}</td>
+                        <td>{{ info.Comments.length }}</td>
+                        <td><i @click="seeUser(info.id)" title="voir le profil" class="far fa-eye"></i></td>
+                        <td><i @click="deleteUser(info.id)" title="Supprimer ce profil" class="fas fa-trash-alt"></i></td>
+                    </tr>
+                </tbody>
         </table>
+        </div>
         <table v-if="messages">
             <thead>
                 <tr>
@@ -42,7 +44,7 @@
             </thead>
             <tbody>
                 <tr v-for="info in infos" :key="info.data">
-                    <th>{{ info.id }}</th>
+                    <td>{{ info.id }}</td>
                     <td>{{ info.pseudo }}</td>
                     <td>{{ info.title }}</td>
                     <td><i @click="deleteMessage(info.id)" title="Supprimer ce profil" class="fas fa-trash-alt"></i></td>
@@ -60,7 +62,7 @@
             </thead>
             <tbody>
                 <tr v-for="info in infos" :key="info.data">
-                    <th>{{ info.id }}</th>
+                    <td>{{ info.id }}</td>
                     <td>{{ info.pseudo }}</td>
                     <td>{{ info.comment }}</td>
                     <td><i @click="deleteComment(info.id)" title="Supprimer ce profil" class="fas fa-trash-alt"></i></td>
@@ -185,5 +187,13 @@ table, td, th{
     border: 1px solid $color-primary;
     text-align: center;
 }
-
+th{
+    background: $color-primary;
+    color: #fff;
+}
+@media screen and (max-width: 800px) {
+    .table__container{
+    overflow: scroll;
+}
+}
 </style>

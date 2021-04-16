@@ -26,9 +26,9 @@
                 </div>
             </div>
             </div>
-            <div class="msg__update">
-                <button v-if="infos.userId == userId || this.$store.state.isAdmin == true" @click="deleteMessage()"><i class="fas fa-trash-alt"></i></button>
-                <button v-if="infos.userId == userId || this.$store.state.isAdmin == true" @click="updateMessage(infos.comment)"><i class="fas fa-pen"></i></button>
+            <div class="msg__ctrl">
+                <button class="msg__ctrl--delete" v-if="infos.userId == userId || this.$store.state.isAdmin == true" @click="deleteMessage()"><i class="fas fa-trash-alt"></i></button>
+                <button class="msg__ctrl--update" v-if="infos.userId == userId || this.$store.state.isAdmin == true" @click="updateMessage(infos.comment)"><i class="fas fa-pen"></i></button>
             </div>
         </div>
         <div class="comment container">
@@ -39,7 +39,6 @@
                 <textarea name="comment" v-model="comment" placeholder="Écrire un commentaire..." class="comment__ctrl--textarea" id="comment"
                  cols="50" rows="6" minlength="10" maxlength="300" required></textarea>
                 <div class="comment__ctrl--btn">
-                    <!-- <button :disabled="message == false" @click="alert('ok')" class="cancel">Annuler</button> -->
                     <button class="send" >Envoyer</button>    
                 </div> 
             </form>
@@ -99,7 +98,7 @@
                         <label class="form__label" for="title">Titre</label>
                         <input class="form__inputText" v-model="title" type="text" name="title"
                         id="title" placeholder="Mon titre"
-                        autocomplete="off" >
+                        autocomplete="off"  minlength="3" maxlength="25">
 
                         <label class="form__label" for="images">
                             Ajouter une image
@@ -250,8 +249,6 @@ import {mapActions} from "vuex";
                 this.comment = ''
             },
             deleteComment(id){
-
-
                 axios.delete(`http://localhost:3000/api/comment/${id}`)
                 .then((res) => {
                     console.log(res)
@@ -263,9 +260,8 @@ import {mapActions} from "vuex";
             },
             deleteMessage(){
                 axios.delete(`http://localhost:3000/api/message/${this.$route.params.id}`)
-                .then((res) => {
-                    console.log(res)
-                    this.refresh()
+                .then(() => {
+                    this.$router.push('/')
                 })
                 .catch((err) => {
                     console.log(err)
@@ -306,9 +302,9 @@ import {mapActions} from "vuex";
     position: relative;
     border: 1px solid;
     border-radius: 4px;
-    box-shadow: 3px 3px 6px grey;
+    box-shadow: 3px 3px 6px $color-text;
     &__title{
-        color: #000;
+        color: $color-text;
         display: inline-block;
     }
     &__container{
@@ -326,7 +322,7 @@ import {mapActions} from "vuex";
         margin: 0.5rem;
         border: 1px solid #d1d1d1;
         border-radius: 4px;
-        background: #fff;
+        background: $color-clear;
     }
     &__info, &__interaction{
         @include display($dirColumn: inherit);
@@ -340,12 +336,17 @@ import {mapActions} from "vuex";
             background: none;
         }
     }
-    &__update{
-        background: #ddd;
+    &__ctrl{
         display: flex;
         border-radius: 0 0 4px 4px;
+        &--delete{
+            background: $color-secondary;
+        }
+        &--update{
+            background: $color-primary;
+        }
         & > button {
-            background: none;
+            color: $color-clear;
             border: none;
             width: 100%;
             padding: 0.5rem;
@@ -361,7 +362,7 @@ import {mapActions} from "vuex";
         justify-content: center;
         align-items: center;
         margin: 0;
-        background: grey;
+        background: $color-text;
         border-radius: 100%;
         width: 3rem;
         max-height: 3rem;
@@ -428,6 +429,7 @@ import {mapActions} from "vuex";
         & > button{
             margin: 0 0.5rem;
             background: #fff;
+            color: $color-primary;
             border: none;
             cursor: pointer;
         }
@@ -512,7 +514,7 @@ import {mapActions} from "vuex";
     background: #fff;
     color: #333;
     width: 320px;
-    height: 45vh;
+    height: 425px;
     padding: 50px;
     @include position(
         $top: 30%,
@@ -704,6 +706,17 @@ import {mapActions} from "vuex";
         &__ctrl{
             margin: 0 0 1rem 0;
         }
+    }
+    .modalInterior{
+        top: 15%;
+        left: 8%;
+        padding: 0;
+        &__btn{
+            left: 85%;
+        }
+    }
+    .formModal{
+        margin: auto 1rem;
     }
 }
 </style>

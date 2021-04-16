@@ -160,7 +160,6 @@ import axios from 'axios';
 .tab{
     margin: auto;
     padding: 1rem;
-    height: 60vh;
     border: 1px solid #d1d1d1;
     border-radius: 4px;
         &__button{
@@ -246,5 +245,21 @@ import axios from 'axios';
   &__btn{
     @include btn;
   }
+}
+
+@media screen and (max-width: 800px) {
+    .dashboard{
+        margin: 3rem auto;
+    }
+    .tab{
+        margin: 1rem;
+        &__button{
+            font-size: 11px;
+            width: auto;
+        }
+    }
+    .infos{
+        width: auto;
+    }
 }
 </style>
