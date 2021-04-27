@@ -176,7 +176,7 @@ import axios from 'axios';
     margin: 1rem auto;
     width: fit-content;
     &__btn{
-        @include btn($border-radius: 0px, $background: grey, $border: grey);
+        @include btn($border-radius: 0px, $background: $color-text, $border: $color-text);
     }
 }
 .active{
@@ -184,6 +184,8 @@ import axios from 'axios';
         }
 table, td, th{
     margin: auto;
+    padding: 0.5rem;
+    border-collapse: collapse;
     border: 1px solid $color-primary;
     text-align: center;
 }
@@ -194,6 +196,9 @@ th{
 @media screen and (max-width: 800px) {
     .table__container{
     overflow: scroll;
+    }
 }
+.tableUsers tr:nth-child(even){
+    background: #f2f2f2;
 }
 </style>

@@ -18,6 +18,10 @@ exports.getAllMessages = async (req, res, next) => {
                     attributes: ["userId"],
                 },
                 {
+                    model: models.Dislike,
+                    attributes: ["userId"],
+                },
+                {
                     model: models.Comment,
                     attributes: ["id", "userId", "comment", "createdAt"],
                     include: [
@@ -52,15 +56,19 @@ exports.getMessage = async (req, res, next) => {
                     attributes: ["userId"],
                 },
                 {
+                    model: models.Dislike,
+                    attributes: ["userId"],
+                },
+                {
                     model: models.Comment,
                     attributes: ["id", "userId", "comment", "createdAt"],
                     include: [
                         {
                             model: models.User,
                             attributes: ["avatar", "pseudo"],
-                        }
+                        },
                     ]
-                }
+                },
             ],
             order: [
                 [ models.Comment, "createdAt", "DESC" ]

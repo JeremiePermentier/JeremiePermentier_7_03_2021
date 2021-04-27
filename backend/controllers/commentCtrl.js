@@ -32,9 +32,9 @@ exports.getAllComments = async (req, res, next) => {
         const userId = token.getUserId(req);
         const user = await models.User.findOne({ where: { id: userId } });
 
-        if (user.isAdmin ===  true){
+        if (user.id ===  userId){
             const comments = await models.Comment.findAll({ 
-                attributes: ["id", "pseudo", "comment"]
+                attributes: ["id", "messageId", "pseudo", "comment"]
             })
             res.status(200).send(comments)
         } else {
@@ -86,3 +86,119 @@ exports.deleteComment = async (req, res, next) => {
         return res.status(500).send({ error: "Erreur serveur" });
     }
 };
+
+exports.like = async (req, res, next) => {    
+    try {
+        const userId = token.getUserId(req);
+        const commentId = req.params.id;
+
+        const like = await models.LikeComment.findOne({
+            where: { userId: userId, commentId: commentId},
+        });
+
+        const dislike = await models.DislikeComment.findOne({
+            where: { userId: userId, commentId: commentId},
+        });
+
+
+        if(!like && !dislike){
+            models.LikeComment.create({
+                UserId: userId,
+                CommentId: commentId,
+            });
+            res.status(201).json({ msg: "Vous aimez ce message" });
+        } else if (like && !dislike){
+            models.LikeComment.destroy(
+                { where: { UserId: userId, CommentId: commentId}},
+            );
+            res.status(200).send({ msg: "Vous n'aimez plus ce message"})
+        } else if (!like && dislike){
+            models.DislikeComment.destroy(
+                { where: { UserId: userId, CommentId: commentId}},
+            );
+            models.LikeComment.create({
+                UserId: userId,
+                CommentId: commentId,
+            });
+            res.status(201).json({ msg: "Vous aimez ce message" });
+        }
+
+
+    } catch (error) {
+        res.status(500).send({ erreur: "Erreur serveur"})
+    }
+};
+
+exports.dislike = async (req, res, next) => {    
+    try {
+        const userId = token.getUserId(req);
+        const commentId = req.params.id;
+
+        const like = await models.LikeComment.findOne({
+            where: { userId: userId, commentId: commentId},
+        });
+
+        const dislike = await models.DislikeComment.findOne({
+            where: { userId: userId, commentId: commentId},
+        });
+
+        if(!dislike && !like){
+            models.DislikeComment.create({
+                UserId: userId,
+                CommentId: commentId,
+            });
+            res.status(201).json({ msg: "Vous n'aimez pas ce message" });
+        } else if (dislike && !like){
+            models.DislikeComment.destroy(
+                { where: { UserId: userId, CommentId: commentId}},
+            );
+            res.status(200).send({ msg: "Votre dislike a été retiré"})
+        } else if (!dislike && like){
+            models.LikeComment.destroy(
+                { where: { UserId: userId, CommentId: commentId}},
+            );
+            models.DislikeComment.create({
+                UserId: userId,
+                CommentId: commentId,
+            });
+            res.status(201).json({ msg: "Vous n'aimez pas ce message" });
+        }
+
+
+    } catch (error) {
+        res.status(500).send({ erreur: "Erreur serveur"})
+    }
+};
+
+exports.getLike = async (req, res, next) => {
+
+    try {
+        const userId = token.getUserId(req);
+        const commentId = req.params.id;
+
+        const likes = await models.LikeComment.findAll({
+            attributes: ["id", "commentId", "userId"],
+            order: [["createdAt", "DESC"]],
+        })
+        res.status(200).json(likes)
+    } catch (error) {
+        res.status(500).send({ erreur: "Erreur serveur"})
+    }
+
+}
+exports.getDislike = async (req, res, next) => {
+
+    try {
+        const userId = token.getUserId(req);
+        const commentId = req.params.id;
+
+        const Dislike = await models.DislikeComment.findAll({
+            attributes: ["id", "commentId", "userId"],
+            order: [["createdAt", "DESC"]],
+        })
+        res.status(200).json(Dislike)
+    } catch (error) {
+        res.status(500).send({ erreur: "Erreur serveur"})
+    }
+
+}

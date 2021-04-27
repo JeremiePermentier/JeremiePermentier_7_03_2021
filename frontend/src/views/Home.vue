@@ -1,5 +1,5 @@
 <template>
-    <div class="containerMsg">
+    <div class="container__message">
       <Message></Message>
     </div>
 </template>

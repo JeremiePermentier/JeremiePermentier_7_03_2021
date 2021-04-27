@@ -2,7 +2,7 @@ const models = require("../models");
 const token = require("../middleware/token");
 const jwt = require('jsonwebtoken');
 
-exports.likeMessage = async (req, res, next) => {    
+exports.dislikeMessage = async (req, res, next) => {    
     try {
         const userId = token.getUserId(req);
         const messageId = req.params.id;
@@ -15,27 +15,26 @@ exports.likeMessage = async (req, res, next) => {
             where: { userId: userId, messageId: messageId},
         });
 
-
-        if(!like && !dislike){
-            models.Like.create({
+        if(!dislike && !like){
+            models.Dislike.create({
                 UserId: userId,
                 MessageId: messageId,
             });
-            res.status(201).json({ msg: "Vous aimez ce message" });
-        } else if (like && !dislike){
-            models.Like.destroy(
-                { where: { UserId: userId, MessageId: messageId}},
-            );
-            res.status(200).send({ msg: "Vous n'aimez plus ce message"})
-        } else if (!like && dislike){
+            res.status(201).json({ msg: "Vous n'aimez pas ce message" });
+        } else if (dislike && !like){
             models.Dislike.destroy(
                 { where: { UserId: userId, MessageId: messageId}},
             );
-            models.Like.create({
+            res.status(200).send({ msg: "Votre dislike a été retiré"})
+        } else if (!dislike && like){
+            models.Like.destroy(
+                { where: { UserId: userId, MessageId: messageId}},
+            );
+            models.Dislike.create({
                 UserId: userId,
                 MessageId: messageId,
             });
-            res.status(201).json({ msg: "Vous aimez ce message" });
+            res.status(201).json({ msg: "Vous n'aimez pas ce message" });
         }
 
 

@@ -1,6 +1,6 @@
 <template>
-      <div class="container__table">
-        <div class="table">
+      <div class="container">
+        <div class="container__form">
           <form class="form" @submit.prevent="login" novalidate="true">
             <label class="form__label" for="email">Email :</label>
             <input class="form__input" v-model="email" type="text" id="email" placeholder="Email">
@@ -69,6 +69,19 @@ export default {
 @import "../assets/utils/_variables.scss";
 @import "../assets/utils/_mixins.scss";
 
+
+.container{
+  display: table;
+  height: 90%;
+  margin: 0 auto;
+  width: 100%;
+  background: -webkit-linear-gradient(top, $color-primary 0%, $color-secondary 100%);
+  &__form{
+    display: table-cell;
+    vertical-align: middle;
+  }
+}
+
 .form{
   @include display;
   &__label{
@@ -107,7 +120,6 @@ export default {
   &__button{
     background: #fff;
     cursor: pointer;
-    // border-bottom: 5px solid #cfcfcf;
     box-shadow: 0px 5px 0px 0px #cfcfcf;
     transition: 400ms;
     &:hover{

@@ -40,6 +40,7 @@
 <script>
 import axios from 'axios';
 
+
     export default {
         name: 'profil',
         data(){
@@ -142,6 +143,19 @@ import axios from 'axios';
 @import "../assets/utils/_variables.scss";
 @import "../assets/utils/_mixins.scss";
 
+
+    .img-container {
+        width: 640px;
+        height: 480px;
+        float: left;
+    }
+    .img-preview {
+        width: 200px;
+        height: 200px;
+        float: left;
+        margin-left: 10px;
+    }
+
 .dashboard{
     margin: 6rem auto;
     &__container{
@@ -162,8 +176,9 @@ import axios from 'axios';
     padding: 1rem;
     border: 1px solid #d1d1d1;
     border-radius: 4px;
+    box-shadow: 3px 3px 6px #35373a;
         &__button{
-            @include btn( $background: grey, $border: grey, $margin: 0, $border-radius: 0);
+            @include btn( $background: $color-text, $border: $color-text, $margin: 0, $border-radius: 0);
             width: 10rem;
             &:hover{
                 background: $color-primary;
@@ -235,7 +250,6 @@ import axios from 'axios';
   }
   &__inputFile{
     margin: 0 0 0.5rem 0;
-
   }
   &__inputTextarea{
     border: 3px solid #d6d6d6;

@@ -2,33 +2,39 @@
     <div class="getOneMsg">
         <div class="msg container">
             <div class="msg__container">
-                <img :src="infos.imageUrl" alt="" class="msg__container--img">
+                <img :src="message.imageUrl" alt="" class="msg__container--img">
             </div>
             <div class="msg__card">
                 <div>
-                    <h2 class="msg__title">{{ infos.title }}</h2>
-                    <p class="msg__text">{{ infos.message }}</p>
+                    <h2 class="msg__title">{{ message.title }}</h2>
+                    <p class="msg__text">{{ message.message }}</p>
                 </div>
                 <div class="msg__info">
                 <div>
-                    <p>Publié par {{ infos.pseudo }}<br/>
-                    le {{ date(infos.createdAt) }}</p>
+                    <p>Publié par {{ message.pseudo }}<br/>
+                    le {{ date(message.createdAt) }}</p>
                 </div>
                 <div class="msg__interaction">
-                    <p class="msg__interaction--comment">{{ countComments() }} <i class="far fa-comment"></i></p>
-                    <p class="msg__interaction--like" @click="like()">
-                        {{ countLikes() }}
+                    <p class="msg__interaction--comment">{{ count(comments) }} <i class="far fa-comment"></i></p>
+                    <p class="msg__interaction--like" @click="likeOrDislike('like')">{{ count(likes) }}
                         <button>
-                            <i v-if="!likeOrNolike()" class="far fa-thumbs-up"></i>
-                            <i v-else-if="likeOrNolike()" class="fas fa-thumbs-up"></i>
+                            <i v-if="!likeOrNolike('Like')" class="far fa-thumbs-up"></i>
+                            <i v-else-if="likeOrNolike('Like')" class="fas fa-thumbs-up"></i>
+                        </button>
+                    </p>
+                    <p class="msg__interaction--like" @click="likeOrDislike('dislike')">
+                        {{ count(dislikes) }}
+                        <button>
+                            <i v-if="!likeOrNolike('Dislike')" class="far fa-thumbs-down"></i>
+                            <i v-if="likeOrNolike('Dislike')" class="fas fa-thumbs-down"></i>
                         </button>
                     </p>
                 </div>
             </div>
             </div>
             <div class="msg__ctrl">
-                <button class="msg__ctrl--delete" v-if="infos.userId == userId || this.$store.state.isAdmin == true" @click="deleteMessage()"><i class="fas fa-trash-alt"></i></button>
-                <button class="msg__ctrl--update" v-if="infos.userId == userId || this.$store.state.isAdmin == true" @click="updateMessage(infos.comment)"><i class="fas fa-pen"></i></button>
+                <button class="msg__ctrl--delete" v-if="message.userId == userId || this.$store.state.isAdmin == true" @click="deleteRequest(`message/${message.id}`, 'message')"><i class="fas fa-trash-alt"></i></button>
+                <button class="msg__ctrl--update" v-if="message.userId == userId || this.$store.state.isAdmin == true" @click="updateMessage(message.comment)"><i class="fas fa-pen"></i></button>
             </div>
         </div>
         <div class="comment container">
@@ -52,9 +58,17 @@
             <p class="comment__avatar">{{ comment.User.pseudo[0] }}</p>
             <div class="commentUser__container">
                 <p class="commentUser__text">{{ comment.comment }}</p>
-                <div v-if="comment.userId == userId" class="commentUser__ctrl">
-                    <button @click="toggleComment(comment.id)"><i title="Modifier le commentaire" class="fas fa-pen"></i></button>
-                    <button @click="deleteComment(comment.id)" ><i title="Supprimer le commentaire" class="fas fa-trash-alt"></i></button>
+                <div class="commentUser__ctrl" >
+                    <button @click="likeOrDislikeComment(comment.id, 'like')">{{ counterLikeAndDislikeComment(comment.id, "LikeComment") }}
+                        <i v-if="userLikeAndDislikeComment(comment.id, 'Like')" class="fas fa-thumbs-up"></i>
+                        <i v-if="!userLikeAndDislikeComment(comment.id, 'Like')"  class="far fa-thumbs-up"></i>
+                    </button>
+                    <button @click="likeOrDislikeComment(comment.id, 'dislike')">{{ counterLikeAndDislikeComment(comment.id, "DislikeComment") }}
+                        <i v-if="userLikeAndDislikeComment(comment.id, 'Dislike')"  class="fas fa-thumbs-down"></i>
+                         <i v-if="!userLikeAndDislikeComment(comment.id, 'Dislike')"  class="far fa-thumbs-down"></i>
+                    </button>
+                    <button v-if="comment.userId === userId" @click="toggleComment(comment.id)"><i title="Modifier le commentaire" class="fas fa-pen"></i></button>
+                    <button v-if="comment.userId === userId" @click="deleteRequest(`comment/${comment.id}`, 'comment')" ><i title="Supprimer le commentaire" class="fas fa-trash-alt"></i></button>
                 </div>
             </div>
         </div>
@@ -64,7 +78,7 @@
                     <button class="modalInterior__btn" v-on:click="toggleComment">
                         <i class="fas fa-times fa-2x"></i>
                     </button>
-                    <form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="formModal" @submit.prevent="(updateCMT())"
+                    <form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="formModal" @submit.prevent="(updateComment())"
                     enctype="multipart/form-data">
                         
                         <label class="formModal__label" for="message">
@@ -93,7 +107,7 @@
                     <button class="modalInterior__btn" v-on:click="updateMessage()">
                         <i class="fas fa-times fa-2x"></i>
                     </button>
-                    <form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="form" @submit.prevent="updateMSG()"
+                    <form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="form" @submit.prevent="sendUpdateMessage()"
                         enctype="multipart/form-data">
                         <label class="form__label" for="title">Titre</label>
                         <input class="form__inputText" v-model="title" type="text" name="title"
@@ -115,7 +129,7 @@
                         Votre message
                         </label>
 
-                        <textarea v-model="message" id="message" class="form__inputTextarea"
+                        <textarea v-model="messageTextarea" id="message" class="form__inputTextarea"
                         placeholder="ajoutez plusieurs lignes"
                         rows="10" cols="40" minlength="10" maxlength="400">
                         </textarea>
@@ -128,7 +142,7 @@
                     <div class="validMsg" v-if="this.$store.state.successMsg">
                         <p>Votre message a bien été enregistré</p>
                         <i class="validMsg__btn--icon far fa-check-circle fa-7x"></i>
-                        <button v-on:click="backToHome" class="validMsg__btn" type="submit">Retour</button>
+                        <button v-on:click="backToHome()" class="validMsg__btn" type="submit">Retour</button>
                     </div>
                 </div>
             </div>
@@ -144,34 +158,51 @@ import {mapActions} from "vuex";
         name: 'GetOneMessage',
         data(){
             return{
-                infos: "",
+                message: "",
                 comments: "",
                 comment: "",
                 likes: "",
+                dislikes: "",
+                likesComments: "",
+                dislikesComments: "",
                 userId: this.$store.state.userId,
                 idComment: "",
-                message: "",
                 file: "",
                 title: "",
+                messageTextarea: "",
                 update: false,
-                modale: false
+                modale: false,
+                error: null
             }
         },
         mounted(){
-        axios.get('http://localhost:3000/api/message/' + this.$route.params.id)
-        .then(res => {
-            this.infos = res.data
-            this.comments = res.data.Comments
-            this.likes = res.data.Likes
-        })
-        .catch(error => console.log(error))
+            axios.get('http://localhost:3000/api/message/' + this.$route.params.id)
+            .then(res => {
+                this.message = res.data
+                this.comments = res.data.Comments
+                this.likes = res.data.Likes
+                this.dislikes = res.data.Dislikes
+            })
+            .catch(error => this.error = error.response.status)
+
+            axios.get('http://localhost:3000/api/comment/likecomment')
+            .then(res => {
+                this.likesComments = res.data
+            })
+            .catch(error => this.error = error.response.status)
+
+            axios.get('http://localhost:3000/api/comment/dislikecomment')
+            .then(res => {
+                this.dislikesComments = res.data
+            })
+            .catch(error => this.error = error.response.status)
         },
         methods:{
             ...mapActions([
                 "addComment", 
-                "updateMsg",
+                "sendMessage",
                 "sendComment",
-                "updateComment",
+                "sendUpdateComment",
                 "deleteComment"
                 ]),
             toggleComment(id){
@@ -186,24 +217,84 @@ import {mapActions} from "vuex";
                 let formatDate = new Date(date);
                 return formatDate.toLocaleString('fr-FR')
             },
-            like(){
-                axios({url: 'http://localhost:3000/api/like/' + this.$route.params.id, method: 'POST'})
+            likeOrDislike(url){
+                axios({url: `http://localhost:3000/api/${url}/` + this.$route.params.id, method: 'POST'})
                 .then(() => {
-                    this.refresh()
+                    this.refresh(`message/${this.message.id}`, 'message')
                 })
-                .catch(res => {console.log(res)})
+                .catch(error => this.error = error.response.status)
             },
-            countComments(){
-                return this.comments.length
+            likeOrDislikeComment(id, url){
+                axios({url: `http://localhost:3000/api/comment/${url}/` + id, method: 'POST'})
+                .then(() => {
+                    this.refresh(`comment/likecomment`, 'likeComment')
+                    this.refresh(`comment/dislikecomment`, 'disLikeComment')
+                })
+                .catch(error => this.error = error.response.status)
             },
-            countLikes(){
-                return this.likes.length
+            count(valueToCalculate){
+                let count = 0;
+
+                if(valueToCalculate.length > count){
+                    return valueToCalculate.length
+                } else {
+                    return count
+                }
             },
-            likeOrNolike(){
-                for (let i = 0 ; i < this.likes.length; i++){
-                    const userIdLike  = this.likes[i].userId
-                    if( userIdLike == this.userId){
-                        return true
+            counterLikeAndDislikeComment(id, valueToCalculate){
+                let count = 0;
+
+                if(valueToCalculate === "LikeComment"){
+                    if (this.likesComments.length > 0){
+                        for (let i = 0; i < this.likesComments.length; i++){
+                            if (id === this.likesComments[i].commentId){
+                                count++
+                            }
+                        }
+                        return count
+                        } else {
+                            return count
+                    }
+                } else if (valueToCalculate === "DislikeComment") {
+                    if (this.dislikesComments.length > 0){
+                        for (let i = 0; i < this.dislikesComments.length; i++){
+                            if (id === this.dislikesComments[i].commentId){
+                                count++
+                            }
+                        }
+                        return count
+                    } else {
+                        return count
+                    }
+                }
+            },
+            userLikeAndDislikeComment(commentId, valueToCalculate){
+                let test;
+                if(valueToCalculate === "Like"){
+                    test = this.likesComments;
+                } else if (valueToCalculate === "Dislike"){
+                    test = this.dislikesComments;
+                }
+                for (let i = 0 ; i < test.length; i++){
+                    if(test[i].commentId === commentId && test[i].userId === this.userId){
+                        return true 
+                    }
+                }
+            },
+            likeOrNolike(likeOrDislike){
+                if(likeOrDislike === "Like"){
+                    for (let i = 0 ; i < this.likes.length; i++){
+                        const userIdLike  = this.likes[i].userId
+                        if( userIdLike == this.userId){
+                            return true
+                        }
+                    }
+                } else if (likeOrDislike === "Dislike"){
+                    for (let i = 0 ; i < this.dislikes.length; i++){
+                        const userIdLike  = this.dislikes[i].userId
+                        if( userIdLike == this.userId){
+                            return true
+                        }
                     }
                 }
             },
@@ -214,58 +305,48 @@ import {mapActions} from "vuex";
                 }
                 this.sendComment(data)
                 this.comment = ""
-                this.refresh()
+                this.refresh(`message/${this.message.id}`, 'message')
             },
             uploadImage(){
                 const file = this.$refs.file.files[0];
                 this.file = file;
-                console.log(file)
             },
-            updateMSG(){
+            sendUpdateMessage(){
                 const formData = new FormData();
                 formData.append("id", this.$route.params.id)
                 formData.append("image", this.file);
                 formData.append("title", this.title);
-                formData.append("message", this.message);
+                formData.append("message", this.messageTextarea);
 
-
-                this.updateMsg(formData)
+                this.sendMessage(formData)
 
                 this.title = '';
-                this.message = '';
+                this.messageTextarea = '';
                 this.file = '';
             },
             backToHome(){
                 this.$store.state.successMsg = false;
-                this.refresh()
+                this.refresh(`message/${this.message.id}`, 'message')
             },
-            updateCMT(){
+            updateComment(){
 
                 let data = {
                     id: this.idComment,
                     comment: this.comment
                 }
-                this.updateComment(data)
+                this.sendUpdateComment(data)
                 this.comment = ''
             },
-            deleteComment(id){
-                axios.delete(`http://localhost:3000/api/comment/${id}`)
-                .then((res) => {
-                    console.log(res)
-                    this.refresh()
-                })
-                .catch((err) => {
-                    console.log(err)
-                })
-            },
-            deleteMessage(){
-                axios.delete(`http://localhost:3000/api/message/${this.$route.params.id}`)
+            deleteRequest(url, request){
+                axios.delete(`http://localhost:3000/api/${url}`)
                 .then(() => {
-                    this.$router.push('/')
+                    if(request === "comment"){
+                        this.refresh(`message/${this.message.id}`, 'message')
+                    } else if (request === "message") {
+                        this.$router.push('/')
+                    }
                 })
-                .catch((err) => {
-                    console.log(err)
-                })
+                .catch(error => this.error = error.response.status)
             },
             updateMessage(){
                 if(this.update === false){
@@ -274,15 +355,22 @@ import {mapActions} from "vuex";
                     this.update = false;
                 }
             },
-            refresh(){
-                axios.get('http://localhost:3000/api/message/' + this.$route.params.id)
+            refresh(url, request){
+
+                axios.get(`http://localhost:3000/api/${url}`)
                 .then(res => {
-                    this.infos = res.data
-                    this.comments = res.data.Comments
-                    this.likes = res.data.Likes
-                    console.log(this.infos)
+                    if(request === "message"){
+                        this.message = res.data
+                        this.comments = res.data.Comments
+                        this.likes = res.data.Likes
+                        this.dislikes = res.data.Dislikes
+                    } else if (request === "likeComment"){
+                        this.likesComments = res.data
+                    } else if (request === "disLikeComment"){
+                        this.dislikesComments = res.data
+                    }
                 })
-                .catch(error => console.log(error))
+                .catch(error => this.error = error.response.status)
             },
         }
     }
@@ -329,11 +417,11 @@ import {mapActions} from "vuex";
         justify-content: space-between;
         &--like, &--comment{
             margin: 1rem;
-            cursor: pointer;
         }
         &--like > button{
             border: none;
             background: none;
+            cursor: pointer;
         }
     }
     &__ctrl{
@@ -341,9 +429,11 @@ import {mapActions} from "vuex";
         border-radius: 0 0 4px 4px;
         &--delete{
             background: $color-secondary;
+            cursor: pointer;
         }
         &--update{
             background: $color-primary;
+            cursor: pointer;
         }
         & > button {
             color: $color-clear;

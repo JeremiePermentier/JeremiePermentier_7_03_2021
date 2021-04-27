@@ -1,6 +1,6 @@
 <template>
 <div>
-	<button  class="btnMsg" v-on:click="toggleModale">+</button>
+	<button  class="btnAppendMessage" v-on:click="toggleModale">+</button>
 
   <div v-for="info in infos" :key="info.message">
     <div class="msg">
@@ -21,18 +21,35 @@
           </div>
           <div class="msg__interaction">
             <p class="msg__interaction--comment">
-              {{ info.Comments.length }} Commentaire
-              <span v-if="info.Comments.length > 1">s</span>
+              {{ info.Comments.length }} Commentaire<span v-if="info.Comments.length > 1">s</span>
             </p>
-            <p class="msg__interaction--like">
-              {{ info.Likes.length }} Like
-              <span v-if="info.Likes.length > 1">s</span>
+            <p class="msg__interaction--like" @click="likeOrDislike(info.id ,'like')">
+              {{ info.Likes.length }}
+               <button>
+                  <i v-if="!likeOrNolike(info.Likes, 'Like')" class="far fa-thumbs-up"></i>
+                  <i v-else-if="likeOrNolike(info.Likes, 'Like')" class="fas fa-thumbs-up"></i>
+                </button>
+            </p>
+            <p class="msg__interaction--like" @click="likeOrDislike(info.id ,'dislike')">
+              {{ info.Dislikes.length }}
+               <button>
+                  <i v-if="!likeOrNolike(info.Dislikes, 'Dislike')" class="far fa-thumbs-down"></i>
+                  <i v-if="likeOrNolike(info.Dislikes, 'Dislike')" class="fas fa-thumbs-down"></i>
+                </button>
             </p>
           </div>
         </div>
       </div>
     </div>
     <hr>
+  </div>
+  <div v-if="infos <= 0 && status === 200">
+    <h3>Bonjour, pour l'instant le réseau de Groupomania est vide de message, soyez le premier à ajouter un message =)</h3>
+  </div>
+  <div v-else-if="status === 404 || 500">
+    <p v-if="status == 404">Nous avons rencontrez une erreur {{ status }}.<br/>
+    Les ressources que vous recherchez n'existe pas</p>
+    <p v-else-if="status === 500">Revenez plus tard nos serveurs sont indisponibles</p>
   </div>
 	<div v-if="modale" class="modale">
 		<div class="modale__overlay" v-on:click="toggleModale"></div>
@@ -74,15 +91,17 @@ export default {
             title: '',
             message: '',
             file: '',
-            modale: false
+            modale: false,
+            status: null
         }
     },
     mounted(){
-        axios.get('http://localhost:3000/api/message')
-        .then(res => {
-            this.infos = res.data
-        })
-        .catch(error => console.log(error))
+      axios.get('http://localhost:3000/api/message')
+      .then(res => {
+          this.infos = res.data
+          this.status = res.status
+      })
+      .catch(error => this.status = error.response.status)
     },
     methods: {
         ...mapActions(["addMessage", "getAllMessage"]),
@@ -94,6 +113,30 @@ export default {
                 this.refresh()
                 this.$store.state.successMsg = false;
             }
+        },
+        likeOrDislike(id, url){
+          axios({url: `http://localhost:3000/api/${url}/` + id, method: 'POST'})
+          .then(() => {
+              this.refresh(`message/${this.message.id}`, 'message')
+          })
+          .catch(error => this.error = error.response.status)
+        },
+        likeOrNolike( LikesOrDislikes, likeOrDislike){
+          if(likeOrDislike === "Like"){
+              for (let i = 0 ; i < LikesOrDislikes.length; i++){
+                  const userIdLike  = LikesOrDislikes[i].userId
+                  if(userIdLike == this.userId){
+                      return true
+                  }
+              }
+          } else if (LikesOrDislikes, likeOrDislike === "Dislike"){
+              for (let i = 0 ; i < LikesOrDislikes.length; i++){
+                  const userIdLike  = LikesOrDislikes[i].userId
+                  if( userIdLike == this.userId){
+                      return true
+                  }
+              }
+          }
         },
         date(date){
             let formatDate = new Date(date);
@@ -119,11 +162,11 @@ export default {
           this.file = '';
         },
         refresh(){
-            axios.get('http://localhost:3000/api/message')
-            .then(res => {
-                this.infos = res.data
-            })
-            .catch(error => console.log(error))
+          axios.get('http://localhost:3000/api/message')
+          .then(res => {
+              this.infos = res.data
+          })
+          .catch(error => this.status = error.response.status)
         }
     }
 }
@@ -132,6 +175,15 @@ export default {
 <style lang="scss" scoped>
 @import "../assets/utils/_variables.scss";
 @import "../assets/utils/_mixins.scss";
+
+.btnAppendMessage{
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  border: 3px #d6d6d6 solid;
+  border-radius: 4px;
+  font-size: 2rem;
+}
 
 .msg{
     margin: 2rem 0;
@@ -173,7 +225,12 @@ export default {
         display: flex;
         justify-content: space-between;
         &--like, &--comment{
-            margin: 1rem;
+          margin: 1rem;
+          & > button{
+            border: none;
+            background: none;
+            cursor: pointer;
+          }
         }
     }
 }

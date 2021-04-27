@@ -49,16 +49,7 @@ export default new Vuex.Store({
     AUTH_IS_SUCCESS(state){
       state.loading = false;
       state.successMsg = true;
-    },
-    // AUTH_REQUEST_DELETE(state){
-    //   state.loading = true;
-    // },
-    // AUTH_SUCCESS_DELETE(state){
-    //   state.loading = false;
-    // },
-    // GET_ONE_MESSAGE(state, message){
-    //   state.message = message;
-    // }
+    }
   },
   actions: {
     submitLogin({ commit }, user){
@@ -110,7 +101,9 @@ export default new Vuex.Store({
         .then(res => {
             commit('GET_ALL_MESSAGE', res)
         })
-        .catch(error => console.log(error))
+        .catch(error => {
+          commit('GET_ALL_MESSAGE', error)
+        })
     },
     addMessage({commit}, data){
       commit('AUTH_REQUEST_LOADING');
@@ -123,12 +116,11 @@ export default new Vuex.Store({
       .then(() => {
         commit('AUTH_IS_SUCCESS');
       })
-      .catch(err => {
-        console.log(err);
+      .catch(() => {
         commit('AUTH_ERROR');
       })
     },
-    updateMsg({commit}, data){
+    sendMessage({commit}, data){
       commit('AUTH_REQUEST_LOADING');
       axios({
         method: "put",
@@ -150,29 +142,24 @@ export default new Vuex.Store({
         url: `http://localhost:3000/api/comment/${data.id}`,
         data: data,
         })
-        .then(res => {
-            console.log(res);
+        .then(() => {
             commit('AUTH_IS_SUCCESS');
         })
-        .catch(err => {
-            console.log(err);
+        .catch(() => {
             commit('AUTH_ERROR');
         })
     },
-    updateComment({commit}, data){
+    sendUpdateComment({commit}, data){
       commit('AUTH_REQUEST_LOADING');
       axios({
       method: "put",
       url: `http://localhost:3000/api/comment/${data.id}`,
       data: data,
       })
-      .then(res => {
-          console.log(res);
+      .then(() => {
           commit('AUTH_IS_SUCCESS');
       })
-      .catch(err => {
-        
-          console.log(err);
+      .catch(() => {
           commit('AUTH_ERROR');
       })
     }

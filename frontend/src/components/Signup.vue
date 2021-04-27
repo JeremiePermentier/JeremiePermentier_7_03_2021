@@ -1,6 +1,6 @@
 <template>
-    <div class="container__table">
-      <div class="table" v-if="this.$store.state.status != 'userCreate'">
+    <div class="container">
+      <div class="container__form" v-if="this.$store.state.status != 'userCreate'">
         <form class="form" @submit.prevent="register">
           <label class="form__label" for="pseudo">Pseudo :</label>
           <input class="form__input" type="text" id="pseudo"
@@ -20,7 +20,7 @@
           <div v-if="this.$store.state.loading" class="loader"></div>
         </form>
       </div>
-      <div class="table" v-if="this.$store.state.status === 'userCreate'">
+      <div class="container__success" v-if="this.$store.state.status === 'userCreate'">
         <div class="success__user">
           <i class="success__user--icon far fa-check-circle fa-7x"></i>
           <p class="success__user--text">Votre profil à bien été créer</p>
@@ -68,7 +68,17 @@ export default {
 // Variables 
 @import "../assets/utils/_variables.scss";
 @import "../assets/utils/_mixins.scss";
-
+.container{
+  display: table;
+  height: 90%;
+  margin: 0 auto;
+  width: 100%;
+  background: -webkit-linear-gradient(top, $color-primary 0%, $color-secondary 100%);
+  &__form, &__success{
+    display: table-cell;
+    vertical-align: middle;
+  }
+}
 .form{
   @include display;
   &__label{
