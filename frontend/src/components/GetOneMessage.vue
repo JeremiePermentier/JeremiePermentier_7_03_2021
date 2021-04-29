@@ -86,8 +86,8 @@
                         </label>
 
                         <textarea v-model="comment" id="message" class="formModal__inputTextarea"
-                        placeholder="ajoutez plusieurs lignes"
-                        rows="10" cols="40" minlength="10" maxlength="400" required>
+                        placeholder="Écrire un commentaire..."
+                        rows="10" cols="40" minlength="10" maxlength="300" required>
                         </textarea>
                         <button class="formModal__btn" type="submit">Envoyer</button>
                     </form>
@@ -114,14 +114,12 @@
                         id="title" placeholder="Mon titre"
                         autocomplete="off"  minlength="3" maxlength="25">
 
-                        <label class="form__label" for="images">
+                        <label class="form__label--image" for="images">
                             Ajouter une image
                         </label>
-
                         <input @change="uploadImage"
                         accept="image/png,
                         image/jpeg,
-                        image/bmp,
                         image/gif" ref="file" class="form__inputFile"
                         type="file" name="image" id="images">
 
@@ -142,7 +140,7 @@
                     <div class="validMsg" v-if="this.$store.state.successMsg">
                         <p>Votre message a bien été enregistré</p>
                         <i class="validMsg__btn--icon far fa-check-circle fa-7x"></i>
-                        <button v-on:click="backToHome()" class="validMsg__btn" type="submit">Retour</button>
+                        <button :click="backToHome()" class="validMsg__btn" type="submit">Retour</button>
                     </div>
                 </div>
             </div>
@@ -395,6 +393,9 @@ import {mapActions} from "vuex";
         color: $color-text;
         display: inline-block;
     }
+    &__text{
+        overflow-wrap: break-word;
+    }
     &__container{
         height: 35vh;
         &--img{
@@ -534,6 +535,7 @@ import {mapActions} from "vuex";
   &__label{
     text-align: left;
     margin: 0 0 0.5rem 0;
+    cursor: pointer;
   }
   &__inputText{
     margin: 0 0 0.5rem 0;

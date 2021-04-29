@@ -6,7 +6,7 @@
             <input class="form__input" v-model="email" type="text" id="email" placeholder="Email">
             <span v-if="errorEmail">{{ errorEmail }}</span>
             <label class="form__label" for="password">Mot de passe</label>
-            <input class="form__input" v-model="password" type="password" id="password" placeholder="Mot de passe">
+            <input class="form__input" v-model="password" type="password" id="password" autocomplete="current-password" placeholder="Mot de passe">
             <span v-if="errorPassword">{{ errorPassword }}</span>
             <button class="form__button" type="submit" :disabled="email == false || password == false">Valider</button>
             <div v-if="this.$store.state.loading" class="loader"></div>
@@ -23,7 +23,7 @@ export default {
   name: 'Login',
   data(){
     return {
-      errors: [],
+      errors: null,
       email: null,
       password: null,
       errorEmail: null,
@@ -53,7 +53,7 @@ export default {
 
     this.submitLogin({email, password})
     .then(() => this.$router.push('/'))
-    .catch(err => console.log(err))
+    .catch(err => this.errors = err)
     },
     validEmail(email){
       var regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;

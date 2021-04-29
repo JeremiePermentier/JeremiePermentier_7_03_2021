@@ -31,44 +31,54 @@
                         <td><i @click="deleteUser(info.id)" title="Supprimer ce profil" class="fas fa-trash-alt"></i></td>
                     </tr>
                 </tbody>
-        </table>
+            </table>
+            <div  v-if="messages">
+                <table v-if="infos.length > 0 && status === 200" class="tableMessage">
+                    <thead>
+                        <tr>
+                            <th scope="col">N°</th>
+                            <th scope="col">Pseudo</th>
+                            <th scope="col">Message</th>
+                            <th scope="col">Supprimer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="info in infos" :key="info.data">
+                            <td>{{ info.id }}</td>
+                            <td>{{ info.pseudo }}</td>
+                            <td>{{ info.title }}</td>
+                            <td><i @click="deleteMessage(info.id)" title="Supprimer ce profil" class="fas fa-trash-alt"></i></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p v-else-if="infos.length === 0 && status === 200" class="infoForAdmin">
+                    Aucun utilisateur n'a créé de messages.
+                </p>
+            </div>
+            <div v-if="comments">
+                <table v-if="infos.length > 0 && status === 200" class="tableComment">
+                    <thead>
+                        <tr>
+                            <th scope="col">N°</th>
+                            <th scope="col">Pseudo</th>
+                            <th scope="col">Commentaires</th>
+                            <th scope="col">Supprimer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="info in infos" :key="info.data">
+                            <td>{{ info.id }}</td>
+                            <td>{{ info.pseudo }}</td>
+                            <td>{{ info.comment }}</td>
+                            <td><i @click="deleteComment(info.id)" title="Supprimer ce profil" class="fas fa-trash-alt"></i></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p v-else-if="infos.length === 0 && status === 200" class="infoForAdmin">
+                    Aucun utilisateur n'a créé de commentaires.
+                </p>
+            </div>
         </div>
-        <table v-if="messages">
-            <thead>
-                <tr>
-                    <th scope="col">N°</th>
-                    <th scope="col">Pseudo</th>
-                    <th scope="col">Message</th>
-                    <th scope="col">Supprimer</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="info in infos" :key="info.data">
-                    <td>{{ info.id }}</td>
-                    <td>{{ info.pseudo }}</td>
-                    <td>{{ info.title }}</td>
-                    <td><i @click="deleteMessage(info.id)" title="Supprimer ce profil" class="fas fa-trash-alt"></i></td>
-                </tr>
-            </tbody>
-        </table>
-        <table v-if="comments">
-            <thead>
-                <tr>
-                    <th scope="col">N°</th>
-                    <th scope="col">Pseudo</th>
-                    <th scope="col">Commentaires</th>
-                    <th scope="col">Supprimer</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="info in infos" :key="info.data">
-                    <td>{{ info.id }}</td>
-                    <td>{{ info.pseudo }}</td>
-                    <td>{{ info.comment }}</td>
-                    <td><i @click="deleteComment(info.id)" title="Supprimer ce profil" class="fas fa-trash-alt"></i></td>
-                </tr>
-            </tbody>
-        </table>
     </div>
 </template>
 
@@ -82,7 +92,8 @@ import axios from 'axios';
                 infos: '',
                 users: false,
                 messages: false,
-                comments: false
+                comments: false,
+                status: null
             }
         },
         methods:{
@@ -92,22 +103,28 @@ import axios from 'axios';
             seeAllUsers(){
                 axios.get('http://localhost:3000/api/users/profil')
                 .then(res => {
-                    this.infos = res.data
-                    this.users = true
-                    this.messages = false
+                    this.infos = res.data;
+                    this.status = res.status;
+                    this.users = true;
+                    this.messages = false;
                     this.comments = false;
                 })
-                .catch(err => console.log(err))
+                .catch(err => {
+                    this.error = err
+                })
             },
             seeAllMessages(){
                 axios.get('http://localhost:3000/api/message')
                 .then(res => {
                     this.infos = res.data;
+                    this.status = res.status;
                     this.messages = true;
                     this.users = false;
                     this.comments = false;
                 })
-                .catch(error => console.log(error))
+                .catch(err => {
+                    this.status = err.status
+                })
             },
             seeAllComments(){
                 axios.get('http://localhost:3000/api/comment')
@@ -180,8 +197,8 @@ import axios from 'axios';
     }
 }
 .active{
-            @include btn($border-radius: 0px, $background: $color-primary, $border: $color-primary);
-        }
+    @include btn($border-radius: 0px, $background: $color-primary, $border: $color-primary);
+}
 table, td, th{
     margin: auto;
     padding: 0.5rem;
@@ -198,7 +215,15 @@ th{
     overflow: scroll;
     }
 }
-.tableUsers tr:nth-child(even){
+table tr:nth-child(even){
     background: #f2f2f2;
+}
+
+.infoForAdmin{
+    text-align: center;
+}
+
+.tableMessage, .tableComment{
+    width: 400px;
 }
 </style>

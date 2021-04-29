@@ -58,8 +58,10 @@
 			<form v-if="!this.$store.state.loading && !this.$store.state.successMsg" class="form" @submit.prevent="sendMsg" enctype="multipart/form-data">
 				<label class="form__label" for="title">Titre</label>
 				<input v-model="title" class="form__inputText" type="text" name="title" id="title" placeholder="Mon titre" autocomplete="off" minlength="3" maxlength="25">
-				<label  for="images" class="form__label">Ajouter une image</label>
-				<input @change="uploadImage" accept="image/png,image/jpeg,image/bmp" ref="file" class="form__inputFile" type="file" name="image" id="images">
+				<label  for="images" class="form__label">
+          Ajouter une image
+        </label>
+        <input @change="uploadImage" accept="image/png,image/jpeg,image/bmp" ref="file" class="form__inputFile" type="file" name="image" id="images">
 				<label class="form__label" for="message">Votre message</label>
 				<textarea v-model="message" id="message" class="form__inputTextarea" placeholder="ajoutez plusieurs lignes" rows="10" cols="40" minlength="10" maxlength="400"></textarea>
 				<button class="form__btn" type="submit">Envoyer</button>
@@ -290,10 +292,6 @@ export default {
     border: 3px solid #d6d6d6;
     border-radius: 3px;
     height: 3rem
-  }
-  &__inputFile{
-    margin: 0 0 0.5rem 0;
-
   }
   &__inputTextarea{
     border: 3px solid #d6d6d6;

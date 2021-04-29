@@ -6,9 +6,9 @@ const fs = require("fs");
 
 
 exports.signup = (req, res, next) => {
-  let email = req.body.email;
-  let pseudo = req.body.pseudo;
-  let password = req.body.password;
+  const email = req.body.email;
+  const pseudo = req.body.pseudo;
+  const password = req.body.password;
 
   if (email === null || pseudo === null || password === null){
     return res.status(400).json({ 'error': 'missing parameters'})
@@ -42,12 +42,14 @@ exports.signup = (req, res, next) => {
     }
   })
   .catch(function(err){
-    return res.status(500).json({ 'error': 'unable to verify user'});
+    return err.status(500).json({ 'error': 'unable to verify user'});
   });
 };
 exports.login = (req, res, next) => {
+  const email = req.body.email;
+
   models.User.findOne({
-    where: { email: req.body.email}
+    where: { email: email}
   })
   .then(user => {
       if (!user) {

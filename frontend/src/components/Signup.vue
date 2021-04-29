@@ -14,7 +14,7 @@
           <label class="form__label" for="password">Mot de passe</label>
           <input class="form__input" type="password"
           id="password" placeholder="Mot de passe" 
-          v-model="password" minlength="10" maxlength="100" required>
+          v-model="password" minlength="10" maxlength="100" autocomplete="current-password" required>
           <span class="form__span" v-if="this.$store.state.status === 'Request failed with status code 400'">Votre mot de passe doit contenir au minimun une majuscule et un chiffre !</span>
           <button class="form__button" type="submit" :disabled="email == false || password == false || pseudo == false">Créer un compte</button>
           <div v-if="this.$store.state.loading" class="loader"></div>
