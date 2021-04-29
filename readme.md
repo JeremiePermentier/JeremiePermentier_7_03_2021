@@ -47,3 +47,4 @@ $ npm run serve
 ```
 
 Cette commande lance le serveur pour le frontend sur l’adresse http://localhost:8080/login
+Pour se connecter avec le compte admin le mot de passe est Admin4test.
